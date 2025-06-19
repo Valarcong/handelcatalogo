@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # handelcatalogo
 =======
 # Welcome to your Lovable project
@@ -75,3 +76,8 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
 >>>>>>> fe96233 (firstcommit)
+=======
+# Handel Catálogo
+
+Este proyecto contiene el catálogo web de productos para Handel Industrial SAC.
+>>>>>>> 84d233fb79a56f6a0263bbdd190a0c83b20f0d57
