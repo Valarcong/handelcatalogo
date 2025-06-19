@@ -29,7 +29,7 @@ const OrderManagement: React.FC = () => {
   }, []);
 
   const avanzarEstado = (estado: PedidoEstado): PedidoEstado | null => {
-    const orden = ["pendiente", "enproceso", "enviado", "entregado"];
+    const orden = ["pendiente", "enproceso", "enviado", "entregado_pp", "entregado_pr"];
     const idx = orden.indexOf(estado);
     if (idx >= 0 && idx < orden.length - 1) {
       return orden[idx + 1] as PedidoEstado;

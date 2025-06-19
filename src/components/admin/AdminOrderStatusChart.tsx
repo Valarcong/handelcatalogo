@@ -1,4 +1,3 @@
-
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -10,11 +9,13 @@ export interface StatusChartData {
   value: number;
 }
 
-const STATUS_LABELS: Record<string, string> = {
+const estadoLabels = {
   pendiente: "Pendiente",
   enproceso: "En proceso",
   enviado: "Enviado",
-  entregado: "Entregado",
+  entregado_pp: "Entregado - PP",
+  entregado_pr: "Entregado - PR",
+  cancelado: "Cancelado"
 };
 
 const AdminOrderStatusChart: React.FC<{ data: StatusChartData[] }> = ({ data }) => (
@@ -29,7 +30,7 @@ const AdminOrderStatusChart: React.FC<{ data: StatusChartData[] }> = ({ data }) 
             data={data} 
             cx="50%" cy="50%" 
             labelLine={false}
-            label={({ name, percent }) => `${STATUS_LABELS[name] ?? name} (${(percent*100).toFixed(0)}%)`}
+            label={({ name, percent }) => `${estadoLabels[name] ?? name} (${(percent*100).toFixed(0)}%)`}
             outerRadius={70}
             dataKey="value"
           >
@@ -42,7 +43,7 @@ const AdminOrderStatusChart: React.FC<{ data: StatusChartData[] }> = ({ data }) 
         {data.map((d, i) => (
           <li key={d.name} className="flex items-center gap-2">
             <span className="inline-block w-3 h-3 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-            {STATUS_LABELS[d.name] ?? d.name}: {d.value}
+            {estadoLabels[d.name] ?? d.name}: {d.value}
           </li>
         ))}
       </ul>

@@ -118,7 +118,7 @@ const AdminStats: React.FC<AdminStatsProps> = ({ products, categories }) => {
     const ingresos = pedidosFiltrados.reduce((acc, p) => acc + Number(p.total), 0);
 
     // Pie Chart: estados (no se usa set state local)
-    const statusAgg = ["pendiente", "enproceso", "enviado", "entregado"].map(status => ({
+    const statusAgg = ["pendiente", "enproceso", "enviado", "entregado_pp", "entregado_pr"].map(status => ({
       name: status,
       value: pedidosFiltrados.filter(p => p.estado === status).length
     }));

@@ -1,4 +1,3 @@
-
 export interface Pedido {
   id: string;
   numero_orden: string;
@@ -21,12 +20,13 @@ export interface Pedido {
   cliente_id?: string | null;
 }
 
-export type PedidoEstado = 'pendiente' | 'enproceso' | 'enviado' | 'entregado' | 'cancelado';
+export type PedidoEstado = 'pendiente' | 'enproceso' | 'enviado' | 'entregado_pp' | 'entregado_pr' | 'cancelado';
 
 export const PEDIDO_ESTADOS: { value: PedidoEstado; label: string }[] = [
   { value: 'pendiente', label: 'Pendiente' },
   { value: 'enproceso', label: 'En proceso' },
   { value: 'enviado', label: 'Enviado' },
-  { value: 'entregado', label: 'Entregado' },
+  { value: 'entregado_pp', label: 'Entregado - PP' },
+  { value: 'entregado_pr', label: 'Entregado - PR' },
   { value: 'cancelado', label: 'Cancelado' },
 ];

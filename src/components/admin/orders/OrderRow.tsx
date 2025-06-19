@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Pedido, PEDIDO_ESTADOS, PedidoEstado } from "@/types/order";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +10,8 @@ const estadosColor = {
   pendiente: "bg-yellow-400 text-white",
   enproceso: "bg-blue-500 text-white",
   enviado: "bg-purple-500 text-white",
-  entregado: "bg-green-500 text-white",
+  entregado_pp: "bg-green-500 text-white",
+  entregado_pr: "bg-green-700 text-white",
   cancelado: "bg-red-500 text-white",
 } as Record<PedidoEstado, string>;
 

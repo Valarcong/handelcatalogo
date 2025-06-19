@@ -21,7 +21,7 @@ const AdminAdvancedDashboard: React.FC<Props> = ({ pedidos, products, categories
   const cancelRate = totalPedidos > 0 ? (pedidosCancelados / totalPedidos) * 100 : 0;
 
   // Embudo de pedidos por estado
-  const estadosFunnel = ["pendiente", "enproceso", "enviado", "entregado", "cancelado"];
+  const estadosFunnel = ["pendiente", "enproceso", "enviado", "entregado_pp", "entregado_pr", "cancelado"];
   const funnelData = estadosFunnel.map(estado => ({
     name: estado.charAt(0).toUpperCase() + estado.slice(1),
     value: pedidos.filter(p => p.estado === estado).length
