@@ -66,7 +66,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
       title: "Producto agregado",
       description: "El producto ha sido agregado exitosamente.",
     });
-    console.log('Nuevo producto agregado:', productData);
   };
 
   return (

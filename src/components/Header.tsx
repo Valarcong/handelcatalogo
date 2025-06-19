@@ -43,39 +43,37 @@ const Header = () => {
   const isMobile = window.innerWidth <= 480;
 
   return (
-    <header className="bg-brand-primary shadow-lg sticky top-0 z-50">
+    <header className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b-2 border-gray-800 shadow-2xl sticky top-0 z-50">
       <div className="container mx-auto px-2">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center max-h-12 overflow-hidden">
-            <div className="flex items-center">
-              <div className="bg-white rounded-lg p-2 mr-3">
-                <span className="text-brand-primary font-bold text-xl">H</span>
-              </div>
-              <div className="text-white">
-                <span className="font-bold text-xl">Handel</span>
-                <span className="text-brand-orange font-bold text-xl">SAC</span>
-              </div>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img
+              src="/imagenes/logo/handel_logo_blanco_reducido.png"
+              alt="HandelSac Logo"
+              className={`object-contain w-auto drop-shadow-xl ${
+                isMobile ? "h-12" : "h-16"
+              } max-w-none`}
+            />
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-10">
             <Link to="/" className={`transition-colors ${isActive("/")}`}>
-              Inicio
+              <span className="font-extrabold text-lg tracking-widest uppercase">Inicio</span>
             </Link>
             <Link
               to="/productos"
               className={`transition-colors ${isActive("/productos")}`}
             >
-              Productos
+              <span className="font-extrabold text-lg tracking-widest uppercase">Productos</span>
             </Link>
             {user && isVendedor && (
               <Link
                 to="/ventas"
                 className={`transition-colors ${isActive("/ventas")}`}
               >
-                Panel Ventas
+                <span className="font-extrabold text-lg tracking-widest uppercase">Ventas</span>
               </Link>
             )}
             {user && isAdmin && (
@@ -83,7 +81,7 @@ const Header = () => {
                 to="/admin"
                 className={`transition-colors ${isActive("/admin")}`}
               >
-                Administración
+                <span className="font-extrabold text-lg tracking-widest uppercase">Administración</span>
               </Link>
             )}
           </nav>
@@ -95,23 +93,23 @@ const Header = () => {
               variant="ghost"
               size="sm"
               onClick={() => setOpenSearch(true)}
-              className="text-white hover:text-brand-orange hover:bg-white/10 relative"
+              className="text-gray-200 hover:text-yellow-300 hover:bg-gray-800/60 border border-gray-700 shadow-md relative"
               aria-label="Buscar productos global"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" />
             </Button>
             {/* Carrito de compras */}
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCartClick}
-              className="text-white hover:text-brand-orange hover:bg-white/10 relative"
+              className="text-gray-200 hover:text-yellow-300 hover:bg-gray-800/60 border border-gray-700 shadow-md relative"
             >
               <ShoppingCart className="h-4 w-4" />
               {totalItems > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brand-orange"
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs border-2 border-gray-900 bg-yellow-400 text-gray-900 font-extrabold"
                 >
                   {totalItems}
                 </Badge>
@@ -121,13 +119,13 @@ const Header = () => {
             {user ? (
               <div className="flex items-center space-x-3">
                 <div className="hidden md:flex flex-col items-end">
-                  <span className="text-white text-sm">{user.nombre}</span>
+                  <span className="text-gray-100 text-sm font-bold tracking-wider">{user.nombre}</span>
                   <div className="flex gap-1">
                     {user.roles?.map((role: any) => (
                       <Badge
                         key={role.id}
                         variant="secondary"
-                        className="text-xs bg-brand-secondary text-white"
+                        className="text-xs bg-gray-800 border border-gray-600 text-gray-200 font-bold"
                       >
                         {role.nombre}
                       </Badge>
@@ -138,7 +136,7 @@ const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="text-white hover:text-brand-orange hover:bg-white/10"
+                  className="text-gray-200 hover:text-red-400 hover:bg-gray-800/60 border border-gray-700 shadow-md"
                 >
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -152,20 +150,20 @@ const Header = () => {
           <div className="flex justify-center space-x-6">
             <Link
               to="/"
-              className={`text-sm transition-colors ${isActive("/")}`}
+              className={`text-sm font-extrabold tracking-widest uppercase transition-colors ${isActive("/")}`}
             >
               Inicio
             </Link>
             <Link
               to="/productos"
-              className={`text-sm transition-colors ${isActive("/productos")}`}
+              className={`text-sm font-extrabold tracking-widest uppercase transition-colors ${isActive("/productos")}`}
             >
               Productos
             </Link>
             {user && isVendedor && (
               <Link
                 to="/ventas"
-                className={`text-sm transition-colors ${isActive("/ventas")}`}
+                className={`text-sm font-extrabold tracking-widest uppercase transition-colors ${isActive("/ventas")}`}
               >
                 Ventas
               </Link>
@@ -173,7 +171,7 @@ const Header = () => {
             {user && isAdmin && (
               <Link
                 to="/admin"
-                className={`text-sm transition-colors ${isActive("/admin")}`}
+                className={`text-sm font-extrabold tracking-widest uppercase transition-colors ${isActive("/admin")}`}
               >
                 Admin
               </Link>

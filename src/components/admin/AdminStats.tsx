@@ -45,7 +45,7 @@ class ErrorCatcher extends React.Component<{ children: React.ReactNode; onError:
   componentDidCatch(error: any) {
     if (this.props.onError) this.props.onError();
     // eslint-disable-next-line no-console
-    console.error("ErrorBoundary atrapó un error:", error);
+    // console.error("ErrorBoundary atrapó un error:", error);
   }
   render() {
     if (this.state.hasError) {
@@ -81,6 +81,11 @@ const AdminStats: React.FC<AdminStatsProps> = ({ products, categories }) => {
           data.map((p: any) => ({
             ...p,
             estado: p.estado as PedidoEstado,
+            productos: Array.isArray(p.productos)
+              ? p.productos
+              : typeof p.productos === "string"
+                ? (() => { try { return JSON.parse(p.productos); } catch { return []; } })()
+                : [],
           }))
         );
       } catch (err: any) {
@@ -221,7 +226,7 @@ const AdminStats: React.FC<AdminStatsProps> = ({ products, categories }) => {
           </>
         )}
         {tab === "reports" && (
-          <AdminReportsSection pedidos={pedidosFiltrados} productos={products} />
+          <AdminReportsSection pedidos={pedidosFiltrados} productos={products} range={range} />
         )}
         {tab === "predictive" && (
           <React.Suspense fallback={<div>Cargando análisis predictivo...</div>}>

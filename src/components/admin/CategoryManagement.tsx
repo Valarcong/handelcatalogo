@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,17 +37,11 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     }
 
     try {
-      console.log('Agregando categoría:', newCategory);
-      
       const { error } = await supabase
         .from('categorias')
-        .insert([{
-          nombre: newCategory.nombre.trim(),
-          imagen_url: newCategory.imagen_url || '/placeholder.svg'
-        }]);
+        .insert([{ nombre: newCategory.nombre.trim(), imagen_url: newCategory.imagen_url || '/placeholder.svg' }]);
 
       if (error) {
-        console.error('Error agregando categoría:', error);
         throw error;
       }
 
@@ -61,7 +54,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         description: "La categoría ha sido agregada exitosamente.",
       });
     } catch (error) {
-      console.error('Error en handleAddCategory:', error);
       toast({
         title: "Error",
         description: "Error al agregar la categoría.",
@@ -81,18 +73,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     }
 
     try {
-      console.log('Actualizando categoría:', editingCategory);
-      
       const { error } = await supabase
         .from('categorias')
-        .update({
-          nombre: editingCategory.name.trim(),
-          imagen_url: editingCategory.image || '/placeholder.svg'
-        })
+        .update({ nombre: editingCategory.name.trim(), imagen_url: editingCategory.image || '/placeholder.svg' })
         .eq('id', editingCategory.id);
 
       if (error) {
-        console.error('Error actualizando categoría:', error);
         throw error;
       }
 
@@ -104,7 +90,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         description: "La categoría ha sido actualizada exitosamente.",
       });
     } catch (error) {
-      console.error('Error en handleUpdateCategory:', error);
       toast({
         title: "Error",
         description: "Error al actualizar la categoría.",
@@ -116,15 +101,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   const handleDeleteCategory = async (id: string, name: string) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar la categoría "${name}"?`)) {
       try {
-        console.log('Eliminando categoría:', id);
-        
         const { error } = await supabase
           .from('categorias')
           .delete()
           .eq('id', id);
 
         if (error) {
-          console.error('Error eliminando categoría:', error);
           throw error;
         }
 
@@ -135,7 +117,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           description: "La categoría ha sido eliminada exitosamente.",
         });
       } catch (error) {
-        console.error('Error en handleDeleteCategory:', error);
         toast({
           title: "Error",
           description: "Error al eliminar la categoría.",

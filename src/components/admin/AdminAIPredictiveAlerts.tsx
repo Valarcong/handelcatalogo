@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +19,10 @@ const AdminAIPredictiveAlerts: React.FC<Props> = ({ authId }) => {
   } = useNotifications(authId);
 
   // Logs para debugging
-  console.log("[AdminAIPredictiveAlerts] authId:", authId);
-  console.log("[AdminAIPredictiveAlerts] notifications:", notifications);
-  console.log("[AdminAIPredictiveAlerts] loading:", loading);
-  console.log("[AdminAIPredictiveAlerts] error:", error);
+  // console.log("[AdminAIPredictiveAlerts] authId:", authId);
+  // console.log("[AdminAIPredictiveAlerts] notifications:", notifications);
+  // console.log("[AdminAIPredictiveAlerts] loading:", loading);
+  // console.log("[AdminAIPredictiveAlerts] error:", error);
 
   const aiAlerts = notifications.filter(n => n.tipo === "alerta_ia");
   const aiUnread = aiAlerts.filter(n => !n.leida);

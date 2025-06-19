@@ -9,17 +9,23 @@ import { useAuth } from "@/hooks/useAuth";
 import OrderTable from "./orders/OrderTable";
 import OrderFilters from "./orders/OrderFilters";
 import { useOrderFilters } from "@/hooks/useOrderFilters"; // <-- FIX: import the missing hook
+import { useClientes } from '@/hooks/useClientes';
+import { Button } from "@/components/ui/button";
+import NewOrderModal from './NewOrderModal';
 
 const OrderManagement: React.FC = () => {
-  const { pedidos, fetchPedidos, updatePedidoEstado, updatePedido, cancelPedido, loading } = useOrders();
+  const { pedidos, fetchPedidos, updatePedidoEstado, updatePedido, cancelPedido, loading, createPedido } = useOrders();
   const [estadoEdit, setEstadoEdit] = useState<{ [id: string]: PedidoEstado | null }>({});
   const [modal, setModal] = useState<{ open: boolean; pedido: Pedido | null }>({ open: false, pedido: null });
+  const [newOrderModal, setNewOrderModal] = useState(false);
   const { filters, setFilter, reset, filtered } = useOrderFilters(pedidos);
   const [cancelModal, setCancelModal] = useState<{ open: boolean; pedido: Pedido | null }>({ open: false, pedido: null });
   const { user } = useAuth();
+  const { clientes, fetchClientes } = useClientes();
 
   useEffect(() => {
     fetchPedidos();
+    fetchClientes();
   }, []);
 
   const avanzarEstado = (estado: PedidoEstado): PedidoEstado | null => {
@@ -56,9 +62,19 @@ const OrderManagement: React.FC = () => {
     }
   };
 
+  // Nuevo: Crear pedido
+  const handleCreatePedido = async (pedidoData: Partial<Pedido>) => {
+    await createPedido(pedidoData);
+    setNewOrderModal(false);
+    await fetchPedidos();
+  };
+
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Pedidos</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Pedidos</h2>
+        <Button onClick={() => setNewOrderModal(true)} variant="default">+ Nuevo Pedido</Button>
+      </div>
       <OrderFilters filters={filters} setFilter={setFilter} reset={reset} />
       {loading ? (
         <div>Cargando pedidos...</div>
@@ -75,18 +91,27 @@ const OrderManagement: React.FC = () => {
           onPDF={p => generatePedidoPDF(p)}
         />
       )}
-      <EditOrderModal
-        pedido={modal.pedido}
-        open={modal.open}
-        onClose={() => setModal({ open: false, pedido: null })}
-        onSave={handleSave}
-      />
+      {/* Modal para crear pedido */}
+      {newOrderModal && (
+        <NewOrderModal
+          open={newOrderModal}
+          onClose={() => setNewOrderModal(false)}
+          onSave={handleCreatePedido}
+        />
+      )}
       <CancelOrderModal
         open={cancelModal.open}
         onClose={() => setCancelModal({ open: false, pedido: null })}
         onConfirm={motivo =>
           cancelModal.pedido ? handleCancelPedido(cancelModal.pedido, motivo) : Promise.resolve()
         }
+      />
+      {/* Modal para editar pedido */}
+      <EditOrderModal
+        pedido={modal.pedido}
+        open={modal.open}
+        onClose={() => setModal({ open: false, pedido: null })}
+        onSave={handleSave}
       />
     </div>
   );

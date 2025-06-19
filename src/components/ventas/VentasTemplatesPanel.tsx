@@ -137,17 +137,6 @@ export default function VentasTemplatesPanel() {
     }
   });
 
-  // Debug logging del array de templates
-  React.useEffect(() => {
-    console.log("[VentasTemplatesPanel] templates:", templates);
-    if (templates === undefined) {
-      console.log("[VentasTemplatesPanel] templates está undefined (¿aún cargando o error?)");
-    }
-    if (Array.isArray(templates)) {
-      console.log(`[VentasTemplatesPanel] templates tiene ${templates.length} elementos`);
-    }
-  }, [templates]);
-
   return (
     <div className="mx-auto max-w-3xl p-4">
       <h2 className="text-2xl font-bold text-brand-navy mb-4">Templates de mensajes de cotización</h2>

@@ -1,3 +1,26 @@
+/**
+ * Objetivo: Transformar la página principal actual en un layout de estilo marketplace.
+ * Cambios solicitados:
+ *
+ * 1. Rediseñar el "hero section" para mostrar una barra de búsqueda centrada con categoría filtrable
+ *    al estilo Amazon/MercadoLibre.
+ *
+ * 2. Debajo del hero, mostrar una cuadrícula (grid) de productos destacados, con:
+ *    - Imágenes visibles
+ *    - Nombre, precio y botón "Comprar por WhatsApp"
+ *    - Etiquetas o badges como "Nuevo", "Oferta", etc. si están disponibles
+ *
+ * 3. Reemplazar las 3 ventajas (Alta calidad, etc.) por una fila de íconos más pequeños tipo badges o cards laterales.
+ *
+ * 4. Añadir un carrusel (slider) o sección de categorías más visual, tipo "ver por categoría"
+ *    con íconos grandes o tarjetas con imágenes de fondo.
+ *
+ * 5. Agregar una sección de promociones o productos recomendados más abajo (opcional).
+ *
+ * 6. Añadir sticky bar o botón flotante con acceso directo a WhatsApp o búsqueda.
+ *
+ * Dejar estilos con Tailwind, evitar usar componentes muy pesados si es posible.
+ */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
@@ -6,222 +29,180 @@ import WhatsAppButton from '@/components/WhatsAppButton';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Package, Users, Award, Shield, Truck, Clock } from 'lucide-react';
 import { Product } from '@/types/product';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const Home = () => {
   const { products, categories, loading } = useProducts();
 
   const handleWhatsAppQuote = (product: Product, quantity: number) => {
-    const totalPrice = (quantity >= 10 ? product.wholesalePrice : product.unitPrice) * quantity;
-    const priceType = quantity >= 10 ? 'Por Mayor' : 'Unitario';
-    
-    const message = `¡Hola! Me interesa este producto:
-
-🧾 *${product.name}*
-📋 Código: ${product.code}
-📦 Cantidad: ${quantity}
-💰 Precio ${priceType}: S/. ${(quantity >= 10 ? product.wholesalePrice : product.unitPrice).toFixed(2)}
-💵 Total: *S/. ${totalPrice.toFixed(2)}*
-
-¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?
-
-¡Gracias!`;
-    
+    const totalPrice = product.unitPrice * quantity;
+    const message = `¡Hola! Me interesa este producto:\n\n🧾 *${product.name}*\n📋 Código: ${product.code}\n📦 Cantidad: ${quantity}\n💰 Precio Unitario: S/. ${product.unitPrice.toFixed(2)}\n💵 Total: *S/. ${totalPrice.toFixed(2)}*\n\n¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?\n\n¡Gracias!`;
     const whatsappUrl = `https://wa.me/51970337910?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-    console.log('Cotización WhatsApp desde Home:', { product: product.name, quantity, totalPrice });
   };
 
   const featuredProducts = products.slice(0, 8);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando productos...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-300">Cargando productos...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white">
-        <div className="container mx-auto px-4 py-16 md:py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-brand-orange">Handel</span>SAC
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Especialistas en soluciones industriales de alta calidad. 
-              Productos confiables para empresas que buscan excelencia.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/productos">
-                <Button className="bg-brand-orange hover:bg-orange-600 text-white px-8 py-3 text-lg">
-                  Ver Catálogo
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-brand-primary px-8 py-3 text-lg"
-                onClick={() => window.open('https://wa.me/51970337910', '_blank')}
-              >
-                Contactar WhatsApp
-              </Button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
+      {/* Hero Section: fondo degradado oscuro, logo, título y barra de búsqueda */}
+      <section className="relative w-full h-[45vh] min-h-[320px] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800 shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-gray-900/80 to-green-900/70" />
+        <div className="relative z-10 w-full flex flex-col items-center justify-center h-full">
+          <img src="/imagenes/logo/handel_logo_blanco_reducido.png" alt="Handel Logo" className="h-24 md:h-32 mb-4 drop-shadow-2xl" />
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-6 text-center drop-shadow-xl tracking-widest uppercase">
+            Encuentra el producto ideal para tu industria
+          </h1>
+          <form className="w-full max-w-2xl flex flex-col md:flex-row gap-3 items-center justify-center bg-gray-900/80 rounded-xl shadow-2xl p-4 border-2 border-gray-700 backdrop-blur">
+            <input
+              type="text"
+              placeholder="Buscar productos, marcas, códigos..."
+              className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold"
+            />
+            <select
+              className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px] text-lg font-semibold"
+              defaultValue=""
+            >
+              <option value="">Todas las categorías</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="px-6 py-2 rounded-lg bg-blue-700 text-white font-extrabold hover:bg-blue-800 transition-colors shadow-lg text-lg border-2 border-blue-900"
+            >
+              Buscar
+            </button>
+          </form>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-brand-primary mb-4">¿Por qué elegir HandelSAC?</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Más de 20 años de experiencia nos respaldan como líderes en soluciones industriales
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-brand-accent" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-brand-primary">Calidad Garantizada</h3>
-              <p className="text-gray-600">Productos certificados con los más altos estándares de calidad industrial</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-orange/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="h-8 w-8 text-brand-orange" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-brand-primary">Entrega Rápida</h3>
-              <p className="text-gray-600">Distribución eficiente a nivel nacional con tiempos de entrega optimizados</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-brand-secondary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-brand-primary">Soporte 24/7</h3>
-              <p className="text-gray-600">Asesoría técnica especializada disponible cuando la necesites</p>
-            </div>
-          </div>
+      {/* Ventajas tipo badges/cards industriales */}
+      <section className="w-full flex flex-wrap justify-center gap-4 py-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800">
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+          <Award className="h-5 w-5 text-blue-400" />
+          <span className="text-sm font-bold text-blue-100 uppercase tracking-wider">+40 años de experiencia</span>
+        </div>
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+          <Package className="h-5 w-5 text-green-400" />
+          <span className="text-sm font-bold text-green-100 uppercase tracking-wider">Calidad garantizada</span>
+        </div>
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+          <Users className="h-5 w-5 text-orange-400" />
+          <span className="text-sm font-bold text-orange-100 uppercase tracking-wider">Atención personalizada</span>
+        </div>
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+          <ArrowRight className="h-5 w-5 text-purple-400" />
+          <span className="text-sm font-bold text-purple-100 uppercase tracking-wider">Entrega rápida</span>
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-16 bg-brand-gray-light">
+      {/* Carrusel visual de categorías industriales */}
+      <section className="py-10 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-brand-primary mb-4">Nuestras Categorías</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Amplio catálogo de productos industriales para satisfacer todas tus necesidades empresariales
-            </p>
+          <div className="text-center mb-8">
+            <h2 className="text-xl md:text-2xl font-extrabold text-gray-100 mb-2 tracking-widest uppercase">Ver por Categoría</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">Explora nuestras categorías principales y encuentra lo que necesitas rápidamente.</p>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                to={`/productos?categoria=${encodeURIComponent(category.name)}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 text-center group"
-              >
-                <div className="w-16 h-16 bg-brand-accent/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-brand-accent/30 transition-colors">
-                  <Package className="h-8 w-8 text-brand-accent" />
-                </div>
-                <h3 className="font-semibold text-brand-primary mb-1">{category.name}</h3>
-                <p className="text-sm text-gray-500">{category.count} productos</p>
-              </Link>
-            ))}
-          </div>
+          <Carousel className="w-full">
+            <CarouselContent>
+              {categories
+                .slice()
+                .sort((a, b) => b.count - a.count)
+                .map((category) => (
+                  <CarouselItem key={category.id} className="basis-3/4 sm:basis-1/3 md:basis-1/4 px-2">
+                    <Link to={`/productos?categoria=${encodeURIComponent(category.name)}`}
+                      className="block group rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow relative h-48 md:h-56 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 border-2 border-gray-700">
+                      {category.image ? (
+                        <img src={category.image} alt={category.name} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-900 to-green-900 opacity-60" />
+                      )}
+                      <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
+                        <Package className="h-10 w-10 text-blue-400 mb-2 drop-shadow" />
+                        <h3 className="text-lg md:text-xl font-extrabold text-gray-100 mb-1 text-center drop-shadow tracking-widest uppercase">{category.name}</h3>
+                        <span className="text-sm text-gray-200 bg-gray-900/80 rounded px-3 py-1 mt-1 shadow border border-gray-700">{category.count} productos</span>
+                      </div>
+                    </Link>
+                  </CarouselItem>
+                ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="right-0 top-1/2 -translate-y-1/2" />
+          </Carousel>
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-16 bg-white">
+      {/* Productos Destacados tipo marketplace industrial */}
+      <section className="py-12 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-brand-primary mb-4">Productos Destacados</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Descubre nuestros productos más solicitados con precios competitivos
+          <div className="text-center mb-10">
+            <h2 className="text-xl font-extrabold text-gray-100 mb-2 tracking-wide uppercase">Productos Destacados</h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">
+              Descubre nuestros productos más populares y solicita tu cotización al instante.
             </p>
           </div>
-          
           {featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onWhatsAppQuote={handleWhatsAppQuote}
-                />
+                <div key={product.id} className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow p-6 flex flex-col items-center relative group border-2 border-gray-700">
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 flex gap-2 z-10">
+                    {product.tags?.includes('Nuevo') && (
+                      <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Nuevo</span>
+                    )}
+                    {product.tags?.includes('Oferta') && (
+                      <span className="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">Oferta</span>
+                    )}
+                  </div>
+                  {/* Imagen (enlace) */}
+                  <Link to={`/producto/${product.id}`} className="block w-full">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-105 transition-transform duration-300 drop-shadow-xl bg-gray-900 rounded-lg p-2 border border-gray-700"
+                    />
+                  </Link>
+                  {/* Nombre (enlace) */}
+                  <Link to={`/producto/${product.id}`} className="block w-full">
+                    <h3 className="font-extrabold text-base text-gray-100 mb-1 text-center line-clamp-2 hover:underline uppercase tracking-wider drop-shadow">{product.name}</h3>
+                  </Link>
+                  {/* Precio */}
+                  <div className="text-yellow-300 font-extrabold text-base mb-2 drop-shadow">S/. {product.unitPrice.toFixed(2)}</div>
+                  {/* Botón WhatsApp */}
+                  <button
+                    onClick={() => handleWhatsAppQuote(product, 1)}
+                    className="mt-auto w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg tracking-wider text-lg border-2 border-green-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.007 4.003A9.967 9.967 0 0012 2C6.477 2 2 6.477 2 12c0 1.657.404 3.22 1.116 4.59L2 22l5.527-1.09A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10 0-2.652-1.032-5.073-2.993-6.997z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.243 15.657a4 4 0 01-5.657-5.657" />
+                    </svg>
+                    Cotizar por WhatsApp
+                  </button>
+                </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No hay productos disponibles en este momento</p>
+              <p className="text-gray-400 mb-4">No hay productos disponibles en este momento</p>
               <Link to="/admin">
                 <Button variant="outline">Ir al Panel de Administración</Button>
               </Link>
             </div>
           )}
-          
-          <div className="text-center">
-            <Link to="/productos">
-              <Button className="bg-brand-primary hover:bg-brand-secondary text-white px-8 py-3">
-                Ver Todos los Productos
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Company Info Section */}
-      <section className="py-16 bg-brand-primary text-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Sobre HandelSAC</h2>
-              <p className="text-lg mb-6 text-blue-100">
-                Somos una empresa peruana especializada en la comercialización de productos industriales 
-                de alta calidad. Con más de dos décadas de experiencia, nos hemos consolidado como 
-                referentes en el sector industrial nacional.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <Award className="h-6 w-6 text-brand-orange mr-3" />
-                  <span>Más de 20 años de experiencia</span>
-                </div>
-                <div className="flex items-center">
-                  <Users className="h-6 w-6 text-brand-orange mr-3" />
-                  <span>Más de 1000 clientes satisfechos</span>
-                </div>
-                <div className="flex items-center">
-                  <Package className="h-6 w-6 text-brand-orange mr-3" />
-                  <span>Amplio catálogo de productos</span>
-                </div>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="bg-white/10 rounded-lg p-8">
-                <h3 className="text-2xl font-bold mb-4">¿Necesitas una cotización?</h3>
-                <p className="mb-6 text-blue-100">
-                  Nuestro equipo de expertos está listo para ayudarte a encontrar 
-                  la solución perfecta para tu empresa.
-                </p>
-                <Button 
-                  className="bg-brand-orange hover:bg-orange-600 text-white px-6 py-3"
-                  onClick={() => window.open('https://wa.me/51970337910', '_blank')}
-                >
-                  Solicitar Cotización
-                </Button>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

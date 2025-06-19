@@ -23,8 +23,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
 
   // Debug: Registrar props y estado para diagnóstico
   useEffect(() => {
-    console.log('[ProductManagement] Monto de products:', products?.length, products);
-    console.log('[ProductManagement] Monto de categories:', categories?.length, categories);
+    // Logs eliminados por seguridad
   }, [products, categories]);
 
   const filteredProducts = useMemo(() => {

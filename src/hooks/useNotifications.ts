@@ -41,7 +41,6 @@ export function useNotifications(authId: string | null) {
       if (fetchError) {
         setNotifications([]);
         setError(fetchError.message || "Error desconocido al consultar notificaciones.");
-        console.error("[useNotifications] Supabase error:", fetchError);
       } else {
         setNotifications((data as Notificacion[]) || []);
         setError(null);
@@ -49,7 +48,6 @@ export function useNotifications(authId: string | null) {
     } catch (err: any) {
       setNotifications([]);
       setError("Error llamando a Supabase: " + (err?.message || String(err)));
-      console.error("[useNotifications] JS error:", err);
     } finally {
       setLoading(false);
     }
@@ -69,7 +67,6 @@ export function useNotifications(authId: string | null) {
     if (channelRef.current) {
       try {
         supabase.removeChannel(channelRef.current);
-        console.log("[Notifications] Canal realtime eliminado correctamente (previo cambio de authId).");
       } catch (err) {
         // Nada
       }
@@ -85,7 +82,6 @@ export function useNotifications(authId: string | null) {
 
     // Evitar multi-subscribe: Si el ref indica que ya hubo un subscribe exitoso previo, NO continuar.
     if (isSubscribedRef.current) {
-      console.warn("[Notifications] Ya hay una suscripción activa, NO se volverá a crear.");
       return;
     }
 
@@ -109,16 +105,11 @@ export function useNotifications(authId: string | null) {
         }
       );
 
-    console.log("[Notifications] Suscribiendo canal realtime para userId:", authId, channel);
-
     // NUEVO: suscripción usando callback (no promesa)
     channel.subscribe((status: string) => {
       if (status === "SUBSCRIBED") {
         isSubscribedRef.current = true;
         channelRef.current = channel;
-        console.log("[Notifications] Suscripción a canal realtime exitosa para userId:", authId);
-      } else {
-        console.error("[Notifications] Error al suscribir canal realtime para userId:", authId, "status:", status);
       }
     });
 
@@ -127,7 +118,6 @@ export function useNotifications(authId: string | null) {
       if (channelRef.current) {
         try {
           supabase.removeChannel(channelRef.current);
-          console.log("[Notifications] Canal realtime eliminado en cleanup.");
         } catch (err) {
           // Nada
         }
@@ -148,7 +138,6 @@ export function useNotifications(authId: string | null) {
       );
     } catch (err: any) {
       setError("Error marcando como leída: " + (err?.message || String(err)));
-      console.error("[Notifications] markAsRead error:", err);
     }
   };
 
@@ -164,7 +153,6 @@ export function useNotifications(authId: string | null) {
       );
     } catch (err: any) {
       setError("Error marcando todas como leídas: " + (err?.message || String(err)));
-      console.error("[Notifications] markAllAsRead error:", err);
     }
   };
 

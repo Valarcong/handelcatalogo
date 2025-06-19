@@ -1,4 +1,3 @@
-
 // Refactorizado: toda la lógica está dividida en componentes independientes.
 import React, { useState, useMemo, useCallback } from "react";
 import { useProducts } from "@/hooks/useProducts";
@@ -10,6 +9,8 @@ import ProductGrid from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { Search } from "lucide-react";
+import { Link } from 'react-router-dom';
+import { Package } from 'lucide-react';
 
 const Products = () => {
   const { products: rawProducts, categories, loading } = useProducts();
@@ -131,82 +132,89 @@ const Products = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className={`container mx-auto px-4 ${isMobile ? "py-4" : "py-8"}`}>
-          <h1
-            className={`text-2xl font-bold text-brand-navy mb-1 ${
-              isMobile ? "" : "text-3xl mb-2"
-            }`}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 pb-10">
+      <section className="container mx-auto px-4 pt-10">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-6 text-center drop-shadow-xl tracking-widest uppercase">
+          Catálogo de Productos
+        </h1>
+        {/* Barra de búsqueda y filtro */}
+        <form className="w-full max-w-3xl mx-auto flex flex-col md:flex-row gap-3 items-center justify-center bg-gray-900/80 rounded-xl shadow-2xl p-4 border-2 border-gray-700 backdrop-blur mb-8">
+          <input
+            type="text"
+            placeholder="Buscar productos, marcas, códigos..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold"
+          />
+          <select
+            className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px] text-lg font-semibold"
+            value={selectedCategory}
+            onChange={e => setSelectedCategory(e.target.value)}
           >
-            Catálogo de Productos
-          </h1>
-          <p className={`text-gray-600 ${isMobile ? "text-xs" : ""}`}>
-            Encuentra el producto perfecto para tus necesidades. {products.length} productos disponibles.
-          </p>
-        </div>
-      </div>
-
-      <div className={`container mx-auto px-2 ${isMobile ? "py-4" : "py-8"}`}>
-        {/* Filtros */}
-        <div className={`bg-white rounded-lg shadow-sm ${isMobile ? "p-3 mb-4" : "p-6 mb-8"}`}>
-          <ProductFilters
-            isMobile={isMobile}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            selectedBrand={selectedBrand}
-            setSelectedBrand={setSelectedBrand}
-            brands={brands}
-            categories={categories}
-            clearFilters={clearFilters}
-          />
-          <ProductActiveFilters
-            isMobile={isMobile}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            selectedBrand={selectedBrand}
-            setSelectedBrand={setSelectedBrand}
-          />
-        </div>
-
-        {/* Resultados */}
-        <div className={`mb-4 ${isMobile ? "text-xs" : "mb-6"}`}>
-          <p className="text-gray-600">
-            Mostrando {filteredAndSortedProducts.length} de {products.length} productos
-          </p>
-        </div>
-
-        {/* Grid de productos o resultado vacío */}
-        {filteredAndSortedProducts.length > 0 ? (
-          <ProductGrid
-            products={filteredAndSortedProducts}
-            onWhatsAppQuote={handleWhatsAppQuote}
-            isMobile={isMobile}
-          />
+            <option value="">Todas las categorías</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+        </form>
+        {/* Grid de productos */}
+        {loading ? (
+          <div className="flex justify-center items-center min-h-[300px]">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-300 ml-4">Cargando productos...</p>
+          </div>
+        ) : filteredAndSortedProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {filteredAndSortedProducts.map((product) => (
+              <div key={product.id} className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow p-6 flex flex-col items-center relative group border-2 border-gray-700">
+                {/* Badges */}
+                <div className="absolute top-3 left-3 flex gap-2 z-10">
+                  {product.tags?.includes('Nuevo') && (
+                    <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Nuevo</span>
+                  )}
+                  {product.tags?.includes('Oferta') && (
+                    <span className="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">Oferta</span>
+                  )}
+                </div>
+                {/* Imagen (enlace) */}
+                <Link to={`/producto/${product.id}`} className="block w-full">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-105 transition-transform duration-300 drop-shadow-xl bg-gray-900 rounded-lg p-2 border border-gray-700"
+                  />
+                </Link>
+                {/* Nombre (enlace) */}
+                <Link to={`/producto/${product.id}`} className="block w-full">
+                  <h3 className="font-extrabold text-base text-gray-100 mb-1 text-center line-clamp-2 hover:underline uppercase tracking-wider drop-shadow">{product.name}</h3>
+                </Link>
+                {/* Precio */}
+                <div className="text-yellow-300 font-extrabold text-base mb-2 drop-shadow">S/. {product.unitPrice.toFixed(2)}</div>
+                {/* Botón WhatsApp */}
+                <button
+                  onClick={() => {
+                    const message = `¡Hola! Me interesa este producto:\n\n🧾 *${product.name}*\n📋 Código: ${product.code}\n💰 Precio Unitario: S/. ${product.unitPrice.toFixed(2)}\n¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?\n\n¡Gracias!`;
+                    const whatsappUrl = `https://wa.me/51970337910?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                  }}
+                  className="mt-auto w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg tracking-wider text-lg border-2 border-green-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.007 4.003A9.967 9.967 0 0012 2C6.477 2 2 6.477 2 12c0 1.657.404 3.22 1.116 4.59L2 22l5.527-1.09A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10 0-2.652-1.032-5.073-2.993-6.997z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.243 15.657a4 4 0 01-5.657-5.657" />
+                  </svg>
+                  Cotizar por WhatsApp
+                </button>
+              </div>
+            ))}
+          </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <Search className="h-16 w-16 mx-auto" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No se encontraron productos
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Intenta ajustar los filtros o buscar con otros términos.
-            </p>
-            <Button onClick={clearFilters} variant="outline">
-              Limpiar Filtros
-            </Button>
+          <div className="flex flex-col items-center justify-center min-h-[300px]">
+            <Package className="h-16 w-16 text-gray-700 mx-auto mb-4" />
+            <p className="text-gray-400 mb-4">No hay productos disponibles en esta categoría o búsqueda</p>
           </div>
         )}
-      </div>
+      </section>
       <WhatsAppButton />
     </div>
   );

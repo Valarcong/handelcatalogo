@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, FileDown } from "lucide-react";
@@ -11,15 +10,16 @@ import { useToast } from "@/hooks/use-toast";
 interface AdminReportsSectionProps {
   pedidos: Pedido[];
   productos: Product[];
+  range?: { from: string; to: string };
 }
 
-const AdminReportsSection: React.FC<AdminReportsSectionProps> = ({ pedidos, productos }) => {
+const AdminReportsSection: React.FC<AdminReportsSectionProps> = ({ pedidos, productos, range }) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
   const handleExportSalesPDF = async () => {
     setDownloading(true);
-    await generateSalesReportPDF(pedidos);
+    await generateSalesReportPDF(pedidos, range);
     setDownloading(false);
     toast({ title: "Reporte PDF generado", description: "Se descargó el PDF de ventas." });
   };
@@ -33,14 +33,14 @@ const AdminReportsSection: React.FC<AdminReportsSectionProps> = ({ pedidos, prod
 
   const handleExportProductsPDF = async () => {
     setDownloading(true);
-    await generateProductsReportPDF(productos);
+    await generateProductsReportPDF(productos, pedidos, range);
     setDownloading(false);
     toast({ title: "PDF generado", description: "Catálogo PDF descargado." });
   };
 
   const handleExportProductsExcel = async () => {
     setDownloading(true);
-    await generateProductsExcel(productos);
+    await generateProductsExcel(productos, pedidos);
     setDownloading(false);
     toast({ title: "Excel generado", description: "Reporte Excel de productos descargado." });
   };

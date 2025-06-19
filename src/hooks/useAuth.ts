@@ -23,7 +23,7 @@ export const useAuth = () => {
 
   // Función helper para obtener datos del usuario con roles usando las nuevas funciones de BD
   const fetchUserWithRoles = async (userId: string) => {
-    console.log('Obteniendo datos del usuario:', userId);
+    // console.log('Obteniendo datos del usuario:', userId);
     
     try {
       // Primera consulta: obtener datos básicos del usuario usando maybeSingle para evitar errores 406
@@ -34,16 +34,16 @@ export const useAuth = () => {
         .maybeSingle();
 
       if (userError) {
-        console.error("Error obteniendo datos básicos del usuario:", userError.message);
+        // console.error("Error obteniendo datos básicos del usuario:", userError.message);
         return null;
       }
 
       if (!userData) {
-        console.log("No se encontraron datos del usuario en la tabla usuarios");
+        // console.log("No se encontraron datos del usuario en la tabla usuarios");
         return null;
       }
 
-      console.log("Datos básicos del usuario obtenidos:", userData);
+      // console.log("Datos básicos del usuario obtenidos:", userData);
 
       // Segunda consulta: obtener roles del usuario - ahora simplificada sin JOIN problemático
       const { data: rolesData, error: rolesError } = await supabase
@@ -63,11 +63,11 @@ export const useAuth = () => {
         .eq('activo', true);
 
       if (rolesError) {
-        console.error("Error obteniendo roles del usuario:", rolesError.message);
+        // console.error("Error obteniendo roles del usuario:", rolesError.message);
         // Continuar sin roles en caso de error
       }
 
-      console.log("Datos de roles obtenidos:", rolesData);
+      // console.log("Datos de roles obtenidos:", rolesData);
 
       // Filtrar roles activos y vigentes
       const now = new Date();
@@ -94,11 +94,11 @@ export const useAuth = () => {
         roles: activeRoles
       };
 
-      console.log("Usuario con roles procesado:", userWithRoles);
+      // console.log("Usuario con roles procesado:", userWithRoles);
       return userWithRoles;
 
     } catch (err) {
-      console.error("Error inesperado al obtener datos del usuario:", err);
+      // console.error("Error inesperado al obtener datos del usuario:", err);
       return null;
     }
   };
@@ -171,14 +171,14 @@ export const useAuth = () => {
   const isVendedor = useMemo(() => hasRole('Vendedor'), [hasRole]);
 
   // Debug update
-  console.log("Auth actual:", { 
-    authUser, 
-    userExtra, 
-    loading, 
-    isAdmin, 
-    isVendedor, 
-    roles: userExtra?.roles?.map(r => r.nombre) 
-  });
+  // console.log("Auth actual:", { 
+  //   authUser, 
+  //   userExtra, 
+  //   loading, 
+  //   isAdmin, 
+  //   isVendedor, 
+  //   roles: userExtra?.roles?.map(r => r.nombre) 
+  // });
 
   return {
     // Separados: el authUser (Supabase) y el userExtra (app)

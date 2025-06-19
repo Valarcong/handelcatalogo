@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { Pedido } from "@/types/order";
 import { Product } from "@/types/product";
@@ -70,9 +69,11 @@ export function useAdvancedKPIs({
     // 4. Productos sin movimiento
     const productosVendidos = new Set<string>();
     pedidosUsados.forEach((p) => {
-      p.productos?.forEach((item: any) => {
-        if (item.nombre) productosVendidos.add(item.nombre);
-      });
+      if (Array.isArray(p.productos)) {
+        p.productos.forEach((item: any) => {
+          if (item.nombre) productosVendidos.add(item.nombre);
+        });
+      }
     });
     const productsWithoutMovement = productos.filter(
       (prod) => !productosVendidos.has(prod.name)

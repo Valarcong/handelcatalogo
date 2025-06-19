@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Pedido, PedidoEstado } from "@/types/order";
@@ -116,6 +115,46 @@ export function useOrders() {
     }
   };
 
+  // Crear un nuevo pedido
+  const createPedido = async (pedido: Partial<Pedido>) => {
+    setLoading(true);
+    // Validar campos requeridos
+    if (!pedido.cliente_nombre || !pedido.productos || typeof pedido.total !== 'number') {
+      toast({
+        title: 'Error',
+        description: 'Faltan datos obligatorios para crear el pedido',
+        variant: 'destructive',
+      });
+      setLoading(false);
+      throw new Error('Faltan datos obligatorios para crear el pedido');
+    }
+    // Adaptar productos a JSON si es necesario
+    const toInsert = {
+      cliente_nombre: pedido.cliente_nombre,
+      cliente_telefono: pedido.cliente_telefono || '',
+      cliente_email: pedido.cliente_email || '',
+      productos: JSON.stringify(pedido.productos),
+      total: pedido.total,
+      observaciones: pedido.observaciones || '',
+      created_at: new Date().toISOString(),
+      estado: pedido.estado || 'pendiente',
+      cliente_id: pedido.cliente_id || null,
+    };
+    const { error } = await supabase.from('pedidos').insert([toInsert]);
+    setLoading(false);
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo crear el pedido',
+        variant: 'destructive',
+      });
+      throw error;
+    } else {
+      toast({ title: 'Pedido creado', description: 'El pedido ha sido registrado correctamente.' });
+      fetchPedidos();
+    }
+  };
+
   return {
     pedidos,
     fetchPedidos,
@@ -123,6 +162,7 @@ export function useOrders() {
     updatePedido,
     cancelPedido,
     loading,
-    setPedidos
+    setPedidos,
+    createPedido,
   };
 }
