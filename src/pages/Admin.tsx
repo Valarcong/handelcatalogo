@@ -51,7 +51,7 @@ const Admin = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando autenticación...</p>
         </div>
       </div>
@@ -155,15 +155,15 @@ const Admin = () => {
           <div className="mb-8">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-brand-navy mb-2">
-                  Panel de Administración - OmegaPlast
+                <h1 className="text-3xl font-bold text-brand-primary mb-2">
+                  Panel de Administración - HandelSAC
                 </h1>
                 <p className="text-gray-600">
                   Bienvenido, {user.nombre}
                 </p>
                 <div className="flex gap-2 mt-2">
                   {user.roles?.map((role: any) => (
-                    <Badge key={role.id} variant="outline">
+                    <Badge key={role.id} variant="outline" className="border-brand-secondary text-brand-secondary">
                       {role.nombre}
                     </Badge>
                   ))}

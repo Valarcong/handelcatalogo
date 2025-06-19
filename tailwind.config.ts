@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,12 +62,16 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// OmegaPlast brand colors
+				// HandelSAC brand colors
 				brand: {
-					navy: '#1e3a8a',
-					orange: '#f97316',
-					'navy-light': '#3b82f6',
-					'orange-light': '#fb923c'
+					primary: '#1B365D',     // Azul marino principal
+					secondary: '#2E5984',   // Azul medio
+					accent: '#4A90A4',      // Azul claro/turquesa
+					orange: '#FF6B35',      // Naranja de acento
+					gray: '#6B7280',        // Gris neutro
+					'gray-light': '#F3F4F6', // Gris claro
+					'navy': '#1B365D',      // Alias para compatibilidad
+					'navy-light': '#2E5984' // Alias para compatibilidad
 				}
 			},
 			borderRadius: {

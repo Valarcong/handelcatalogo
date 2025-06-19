@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
@@ -11,7 +10,7 @@ interface WhatsAppButtonProps {
 
 const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ 
   phone = "51970337910", 
-  message = "¡Hola! Me interesa información sobre sus productos plásticos. ¿Podrían ayudarme?",
+  message = "¡Hola! Me interesa información sobre sus productos industriales. ¿Podrían ayudarme?",
   className = ""
 }) => {
   const location = useLocation();

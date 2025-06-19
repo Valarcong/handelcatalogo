@@ -40,21 +40,23 @@ const Header = () => {
 
   const totalItems = getTotalItems();
 
-  const isMobile = window.innerWidth <= 480; // Solo aplica el tamaño visualmente, mejora con useIsMobile si se requiere
+  const isMobile = window.innerWidth <= 480;
 
   return (
-    <header className="bg-brand-navy shadow-lg sticky top-0 z-50">
+    <header className="bg-brand-primary shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-2">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center max-h-12 overflow-hidden">
-            <img
-              src="/imagenes/logo/handel_logo_blanco_reducido.png"
-              alt="HandelSac Logo"
-              className={`object-contain w-auto ${
-                isMobile ? "h-8 max-w-[120px]" : "h-10 max-w-[180px]"
-              }`}
-            />
+            <div className="flex items-center">
+              <div className="bg-white rounded-lg p-2 mr-3">
+                <span className="text-brand-primary font-bold text-xl">H</span>
+              </div>
+              <div className="text-white">
+                <span className="font-bold text-xl">Handel</span>
+                <span className="text-brand-orange font-bold text-xl">SAC</span>
+              </div>
+            </div>
           </Link>
 
           {/* Navigation */}
@@ -109,7 +111,7 @@ const Header = () => {
               {totalItems > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brand-orange"
                 >
                   {totalItems}
                 </Badge>
@@ -125,7 +127,7 @@ const Header = () => {
                       <Badge
                         key={role.id}
                         variant="secondary"
-                        className="text-xs"
+                        className="text-xs bg-brand-secondary text-white"
                       >
                         {role.nombre}
                       </Badge>
