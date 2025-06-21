@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useOrders } from "@/hooks/useOrders";
-import { Pedido, PEDIDO_ESTADOS, PedidoEstado } from "@/types/order";
-import EditOrderModal from "./EditOrderModal";
-import ProductSummaryPopover from "./ProductSummaryPopover";
+import { Pedido, PedidoEstado } from "@/types/order";
 import { generatePedidoPDF } from "@/utils/generatePedidoPDF";
-import CancelOrderModal from "./CancelOrderModal";
 import { useAuth } from "@/hooks/useAuth";
 import OrderTable from "./orders/OrderTable";
 import OrderFilters from "./orders/OrderFilters";
-import { useOrderFilters } from "@/hooks/useOrderFilters"; // <-- FIX: import the missing hook
+import { useOrderFilters } from "@/hooks/useOrderFilters";
 import { useClientes } from '@/hooks/useClientes';
-import { Button } from "@/components/ui/button";
-import NewOrderModal from './NewOrderModal';
+import OrderManagementHeader from "./orders/OrderManagementHeader";
+import OrderManagementModals, { DeleteOrderModal } from "./orders/OrderManagementModals";
 
 const OrderManagement: React.FC = () => {
-  const { pedidos, fetchPedidos, updatePedidoEstado, updatePedido, cancelPedido, loading, createPedido } = useOrders();
+  const { pedidos, fetchPedidos, updatePedidoEstado, updatePedido, cancelPedido, deletePedido, loading, createPedido } = useOrders();
   const [estadoEdit, setEstadoEdit] = useState<{ [id: string]: PedidoEstado | null }>({});
   const [modal, setModal] = useState<{ open: boolean; pedido: Pedido | null }>({ open: false, pedido: null });
   const [newOrderModal, setNewOrderModal] = useState(false);
   const { filters, setFilter, reset, filtered } = useOrderFilters(pedidos);
   const [cancelModal, setCancelModal] = useState<{ open: boolean; pedido: Pedido | null }>({ open: false, pedido: null });
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; pedido: Pedido | null }>({ open: false, pedido: null });
   const { user } = useAuth();
   const { clientes, fetchClientes } = useClientes();
 
@@ -51,6 +49,16 @@ const OrderManagement: React.FC = () => {
     }
   };
 
+  const handleDeletePedido = async (pedido: Pedido) => {
+    try {
+      await deletePedido(pedido.id);
+      setDeleteModal({ open: false, pedido: null });
+      await fetchPedidos(); // Recargar la lista
+    } catch (e) {
+      // El toast está en el hook
+    }
+  };
+
   const handleAvanzar = async (id: string) => {
     const pedido = pedidos.find(x => x.id === id);
     if (!pedido) return;
@@ -71,10 +79,7 @@ const OrderManagement: React.FC = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Pedidos</h2>
-        <Button onClick={() => setNewOrderModal(true)} variant="default">+ Nuevo Pedido</Button>
-      </div>
+      <OrderManagementHeader onCreateOrder={() => setNewOrderModal(true)} />
       <OrderFilters filters={filters} setFilter={setFilter} reset={reset} />
       {loading ? (
         <div>Cargando pedidos...</div>
@@ -89,29 +94,24 @@ const OrderManagement: React.FC = () => {
           onCancelar={p => setCancelModal({ open: true, pedido: p })}
           onEdit={p => setModal({ open: true, pedido: p })}
           onPDF={p => generatePedidoPDF(p)}
+          onDelete={p => setDeleteModal({ open: true, pedido: p })}
         />
       )}
-      {/* Modal para crear pedido */}
-      {newOrderModal && (
-        <NewOrderModal
-          open={newOrderModal}
-          onClose={() => setNewOrderModal(false)}
-          onSave={handleCreatePedido}
-        />
-      )}
-      <CancelOrderModal
-        open={cancelModal.open}
-        onClose={() => setCancelModal({ open: false, pedido: null })}
-        onConfirm={motivo =>
-          cancelModal.pedido ? handleCancelPedido(cancelModal.pedido, motivo) : Promise.resolve()
-        }
-      />
-      {/* Modal para editar pedido */}
-      <EditOrderModal
-        pedido={modal.pedido}
-        open={modal.open}
-        onClose={() => setModal({ open: false, pedido: null })}
+      
+      <OrderManagementModals
+        newOrderModal={newOrderModal}
+        setNewOrderModal={setNewOrderModal}
+        modal={modal}
+        setModal={setModal}
+        cancelModal={cancelModal}
+        setCancelModal={setCancelModal}
+        deleteModal={deleteModal}
+        setDeleteModal={setDeleteModal}
         onSave={handleSave}
+        onCancelPedido={handleCancelPedido}
+        onCreatePedido={handleCreatePedido}
+        onDeletePedido={handleDeletePedido}
+        loading={loading}
       />
     </div>
   );

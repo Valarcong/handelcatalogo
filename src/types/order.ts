@@ -6,9 +6,13 @@ export interface Pedido {
   cliente_email?: string;
   estado: PedidoEstado;
   productos: Array<{
+    id: string;
     nombre: string;
+    codigo: string;
     cantidad: number;
-    precio: number;
+    precio_venta: number;
+    precio_compra: number;
+    subtotal: number;
   }>;
   total: number;
   observaciones?: string;
@@ -30,3 +34,25 @@ export const PEDIDO_ESTADOS: { value: PedidoEstado; label: string }[] = [
   { value: 'entregado_pr', label: 'Entregado - PR' },
   { value: 'cancelado', label: 'Cancelado' },
 ];
+
+// Interfaz para productos en el carrito/pedido en proceso
+export interface ProductoPedido {
+  id: string;
+  nombre: string;
+  codigo: string;
+  cantidad: number;
+  precio_venta: number;
+  precio_compra: number;
+  subtotal: number;
+}
+
+// Función helper para calcular el margen de ganancia
+export const calcularMargenGanancia = (precioVenta: number, precioCompra: number): number => {
+  if (precioCompra === 0) return 0;
+  return ((precioVenta - precioCompra) / precioCompra) * 100;
+};
+
+// Función helper para calcular la ganancia total
+export const calcularGananciaTotal = (precioVenta: number, precioCompra: number, cantidad: number): number => {
+  return (precioVenta - precioCompra) * cantidad;
+};

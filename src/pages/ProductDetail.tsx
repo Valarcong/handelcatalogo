@@ -3,25 +3,128 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, MessageCircle, ArrowLeft, Minus, Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { 
+  ShoppingCart, 
+  MessageCircle, 
+  ArrowLeft, 
+  Minus, 
+  Plus, 
+  Package, 
+  Ruler, 
+  Thermometer, 
+  Zap, 
+  Shield, 
+  Info,
+  Download,
+  Share2,
+  Heart,
+  Star
+} from 'lucide-react';
+import { ResponsiveContainer, ResponsiveGrid, MobileOnly, DesktopOnly } from '@/components/ui/responsive';
 
 const MIN_QTY = 1;
-const MAX_QTY = 999; // Puedes ajustar este máximo
+const MAX_QTY = 999;
+
+// Componente para especificaciones técnicas
+const TechnicalSpecs: React.FC<{ product: any }> = ({ product }) => {
+  const specs = [
+    { icon: Package, label: 'Material', value: product.material || 'Poliestireno (PS)' },
+    { icon: Ruler, label: 'Dimensiones', value: product.dimensions || 'Variable según modelo' },
+    { icon: Thermometer, label: 'Temperatura', value: product.temperature || '-10°C a +70°C' },
+    { icon: Zap, label: 'Capacidad', value: product.capacity || 'Variable' },
+    { icon: Shield, label: 'Certificaciones', value: product.certifications || 'FDA, ISO 9001' },
+    { icon: Info, label: 'Código', value: product.code },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+        <Package className="h-5 w-5 text-blue-600" />
+        Especificaciones Técnicas
+      </h3>
+      <ResponsiveGrid cols={{ mobile: 1, tablet: 2, desktop: 2 }}>
+        {specs.map((spec, index) => (
+          <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <spec.icon className="h-5 w-5 text-gray-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-gray-700">{spec.label}</p>
+              <p className="text-sm text-gray-600">{spec.value}</p>
+            </div>
+          </div>
+        ))}
+      </ResponsiveGrid>
+    </div>
+  );
+};
+
+// Componente para características del producto
+const ProductFeatures: React.FC<{ product: any }> = ({ product }) => {
+  const features = [
+    'Resistente a altas temperaturas',
+    'Apto para microondas',
+    'Libre de BPA',
+    'Reutilizable',
+    'Fácil limpieza',
+    'Empaque ecológico'
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800">Características Principales</h3>
+      <ul className="space-y-2">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-center gap-2 text-gray-700">
+            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            {feature}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Componente para información de uso
+const UsageInfo: React.FC<{ product: any }> = ({ product }) => {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800">Información de Uso</h3>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-medium text-blue-800 mb-2">Instrucciones de Uso</h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Lavar antes del primer uso</li>
+          <li>• No usar en horno convencional</li>
+          <li>• Temperatura máxima: 70°C</li>
+          <li>• No exponer a llamas directas</li>
+        </ul>
+      </div>
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h4 className="font-medium text-yellow-800 mb-2">Precauciones</h4>
+        <ul className="text-sm text-yellow-700 space-y-1">
+          <li>• Mantener fuera del alcance de niños</li>
+          <li>• No usar para almacenar productos químicos</li>
+          <li>• Revisar integridad antes de cada uso</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { products, loading } = useProducts();
-
-  // Nuevo estado para cantidad
   const [quantity, setQuantity] = useState<number>(MIN_QTY);
+  const [activeTab, setActiveTab] = useState('general');
 
   const product = products.find((p) => p.id === id);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>
+        <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-navy mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando producto...</p>
         </div>
@@ -61,112 +164,216 @@ const ProductDetail: React.FC = () => {
     window.open(whatsappUrl, '_blank');
   };
 
+  const totalPrice = product.unitPrice * quantity;
+  const isWholesale = quantity >= (product.minimumWholesaleQuantity || 10);
+  const displayPrice = isWholesale ? product.wholesalePrice : product.unitPrice;
+  const displayTotal = displayPrice * quantity;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 py-10">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 flex items-center text-gray-300 hover:text-white">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
-        <div className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 rounded-xl shadow-2xl p-8 md:flex gap-10 border border-gray-700">
-          <div className="md:w-1/2 flex-shrink-0 flex flex-col items-center">
-            <div className="aspect-square bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg overflow-hidden w-full max-w-xs border-2 border-gray-600 shadow-lg">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-contain p-4"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/placeholder.svg';
-                }}
-              />
-            </div>
-            {/* Futuro: galería de imágenes aquí */}
+    <div className="min-h-screen bg-gray-50">
+      <ResponsiveContainer maxWidth="full" className="py-6">
+        {/* Header con navegación */}
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(-1)} 
+            className="flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Columna izquierda - Imagen y acciones */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-6">
+              <CardContent className="p-6">
+                {/* Imagen del producto */}
+                <div className="aspect-square bg-white rounded-lg overflow-hidden border mb-6">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-contain p-4"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
+                </div>
+
+                {/* Badges de estado */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {product.tags.includes('Nuevo') && (
+                    <Badge className="bg-green-100 text-green-800">Nuevo</Badge>
+                  )}
+                  {product.tags.includes('Oferta') && (
+                    <Badge className="bg-orange-100 text-orange-800">Oferta</Badge>
+                  )}
+                  {isWholesale && (
+                    <Badge className="bg-blue-100 text-blue-800">Precio Mayorista</Badge>
+                  )}
+                </div>
+
+                {/* Selector de cantidad */}
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-700">Cantidad</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        onClick={() => handleQuantityChange(quantity - 1)}
+                        disabled={quantity <= MIN_QTY}
+                        className="h-8 w-8"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      <input
+                        type="number"
+                        min={MIN_QTY}
+                        max={MAX_QTY}
+                        value={quantity}
+                        onChange={e => handleQuantityChange(Number(e.target.value))}
+                        className="w-16 text-center border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        onClick={() => handleQuantityChange(quantity + 1)}
+                        disabled={quantity >= MAX_QTY}
+                        className="h-8 w-8"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Precios */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Precio unitario:</span>
+                      <span className="font-medium">
+                        S/. {displayPrice.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Total:</span>
+                      <span className="text-xl font-bold text-blue-600">
+                        S/. {displayTotal.toFixed(2)}
+                      </span>
+                    </div>
+                    {isWholesale && (
+                      <p className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                        ✓ Aplicando precio mayorista (mín. {product.minimumWholesaleQuantity || 10} unidades)
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="space-y-3">
+                  <Button 
+                    onClick={handleQuote}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    size="lg"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Cotizar por WhatsApp
+                  </Button>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Heart className="h-4 w-4 mr-1" />
+                      Favorito
+                    </Button>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Compartir
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="md:w-1/2 mt-6 md:mt-0 flex flex-col gap-4">
-            <h1 className="font-extrabold text-3xl text-gray-100 mb-2 tracking-wide uppercase flex items-center gap-2">
-              {product.name}
-              {product.tags.includes('Nuevo') && (
-                <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded ml-2">Nuevo</span>
-              )}
-              {product.tags.includes('Oferta') && (
-                <span className="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded ml-2">Oferta</span>
-              )}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-xs border-gray-500 text-gray-300 bg-gray-800">{product.code}</Badge>
-              <Badge variant="secondary" className="text-xs bg-gray-700 text-gray-200">{product.category}</Badge>
-              <Badge variant="secondary" className="text-xs bg-gray-700 text-gray-200">{product.brand}</Badge>
-            </div>
-            {/* Descripción técnica */}
-            <div className="bg-gray-900/80 border border-gray-700 rounded-lg p-4 text-gray-200 font-mono text-sm max-h-72 overflow-y-auto shadow-inner">
-              {product.description}
-            </div>
-            <div className="mt-2">
-              <p className="text-lg font-bold text-blue-400 mb-1">
-                Precio: <span className="text-white">S/. {product.unitPrice.toFixed(2)}</span>
-              </p>
-            </div>
-            {/* Selector de cantidad */}
-            <div className="flex items-center gap-3 mt-2">
-              <span className="font-semibold text-gray-200">Cantidad</span>
-              <Button
-                type="button"
-                size="icon"
-                variant="secondary"
-                onClick={() => handleQuantityChange(quantity - 1)}
-                disabled={quantity <= MIN_QTY}
-                aria-label="Restar"
-                className="bg-gray-700 border border-gray-600 text-white"
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-              <input
-                type="number"
-                min={MIN_QTY}
-                max={MAX_QTY}
-                value={quantity}
-                onChange={e => handleQuantityChange(Number(e.target.value))}
-                className="w-16 text-center border border-gray-600 rounded bg-gray-800 text-white px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <Button
-                type="button"
-                size="icon"
-                variant="secondary"
-                onClick={() => handleQuantityChange(quantity + 1)}
-                disabled={quantity >= MAX_QTY}
-                aria-label="Sumar"
-                className="bg-gray-700 border border-gray-600 text-white"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            {/* Previsualización de precio total */}
-            <div className="mt-2">
-              <span className={`px-2 py-1 rounded inline-block text-sm font-bold mb-1 bg-blue-900 text-blue-200`}>
-                Total
-              </span>
-              <span className="block text-2xl font-extrabold text-yellow-300 mt-1">{(product.unitPrice * quantity).toLocaleString('es-PE', { style: 'currency', currency: 'PEN' })}</span>
-            </div>
-            <div className="flex flex-wrap gap-2 my-2">
-              {product.tags.slice(0, 6).map((tag, i) => (
-                <Badge key={i} variant="secondary" className="text-xs bg-gray-700 text-gray-200 border border-gray-600">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            <div className="flex flex-col gap-2 mt-4 w-full">
-              <Button
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold tracking-wider"
-                onClick={handleQuote}
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Cotizar por WhatsApp
-              </Button>
-            </div>
+
+          {/* Columna derecha - Información del producto */}
+          <div className="lg:col-span-2">
+            {/* Información básica */}
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between">
+                    <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-gray-600">4.8</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">{product.code}</Badge>
+                    <Badge variant="secondary">{product.category}</Badge>
+                    <Badge variant="secondary">{product.brand}</Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700 leading-relaxed">
+                  {product.description}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Tabs con información detallada */}
+            <Card>
+              <CardContent className="p-0">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="general">General</TabsTrigger>
+                    <TabsTrigger value="technical">Técnico</TabsTrigger>
+                    <TabsTrigger value="features">Características</TabsTrigger>
+                    <TabsTrigger value="usage">Uso</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="p-6">
+                    <TabsContent value="general" className="space-y-4">
+                      <div className="prose max-w-none">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Descripción General</h3>
+                        <p className="text-gray-700 leading-relaxed">
+                          {product.description}
+                        </p>
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-medium text-gray-800 mb-2">Información Adicional</h4>
+                          <ul className="text-sm text-gray-600 space-y-1">
+                            <li>• Marca: {product.brand}</li>
+                            <li>• Categoría: {product.category}</li>
+                            <li>• Código: {product.code}</li>
+                            <li>• Stock disponible</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="technical">
+                      <TechnicalSpecs product={product} />
+                    </TabsContent>
+
+                    <TabsContent value="features">
+                      <ProductFeatures product={product} />
+                    </TabsContent>
+
+                    <TabsContent value="usage">
+                      <UsageInfo product={product} />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </div>
+      </ResponsiveContainer>
     </div>
   );
 };

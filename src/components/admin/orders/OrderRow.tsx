@@ -1,9 +1,9 @@
 import React from "react";
-import { Pedido, PEDIDO_ESTADOS, PedidoEstado } from "@/types/order";
+import { Pedido, PEDIDO_ESTADOS, PedidoEstado, calcularGananciaTotal } from "@/types/order";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ProductSummaryPopover from "@/components/admin/ProductSummaryPopover";
-import { XCircle, Pencil, Download } from "lucide-react";
+import { XCircle, Pencil, Download, Trash2 } from "lucide-react";
 import { generatePedidoPDF } from "@/utils/generatePedidoPDF";
 
 const estadosColor = {
@@ -24,6 +24,7 @@ interface OrderRowProps {
   onCancelar: () => void;
   onEdit: () => void;
   onPDF: () => void;
+  onDelete: () => void;
 }
 
 export const OrderRow: React.FC<OrderRowProps> = ({
@@ -35,7 +36,27 @@ export const OrderRow: React.FC<OrderRowProps> = ({
   onCancelar,
   onEdit,
   onPDF,
+  onDelete,
 }) => {
+  // Calcular ganancia total del pedido
+  const gananciaTotal = pedido.productos.reduce((total, producto) => {
+    return total + calcularGananciaTotal(
+      producto.precio_venta, 
+      producto.precio_compra, 
+      producto.cantidad
+    );
+  }, 0);
+
+  // Calcular margen promedio
+  const margenPromedio = pedido.productos.length > 0 
+    ? pedido.productos.reduce((total, producto) => {
+        if (producto.precio_compra > 0) {
+          return total + ((producto.precio_venta - producto.precio_compra) / producto.precio_compra) * 100;
+        }
+        return total;
+      }, 0) / pedido.productos.filter(p => p.precio_compra > 0).length
+    : 0;
+
   return (
     <tr
       className={`border-b ${pedido.estado === "cancelado" ? "bg-red-50 opacity-70" : ""}`}
@@ -54,7 +75,27 @@ export const OrderRow: React.FC<OrderRowProps> = ({
           </span>
         )}
       </td>
-      <td className="p-2">S/. {pedido.total}</td>
+      <td className="p-2 font-semibold">S/. {pedido.total.toFixed(2)}</td>
+      <td className="p-2">
+        <div className="text-sm">
+          <div className={`font-semibold ${gananciaTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            S/. {gananciaTotal.toFixed(2)}
+          </div>
+          <div className="text-xs text-gray-500">
+            {margenPromedio.toFixed(1)}% margen
+          </div>
+        </div>
+      </td>
+      <td className="p-2">
+        <div className="text-sm">
+          <div className="font-semibold text-blue-600">
+            {margenPromedio.toFixed(1)}%
+          </div>
+          <div className="text-xs text-gray-500">
+            promedio
+          </div>
+        </div>
+      </td>
       <td className="p-2 text-xs">{new Date(pedido.created_at).toLocaleString()}</td>
       <td className="p-2">
         <ProductSummaryPopover productos={pedido.productos} />
@@ -104,6 +145,16 @@ export const OrderRow: React.FC<OrderRowProps> = ({
           title="Descargar PDF"
         >
           <Download className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="destructive"
+          aria-label="Eliminar permanentemente"
+          onClick={onDelete}
+          disabled={loading}
+          title="Eliminar pedido permanentemente"
+        >
+          <Trash2 className="w-4 h-4" />
         </Button>
       </td>
     </tr>

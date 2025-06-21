@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Product } from "@/types/product";
 import SelectedProductRow from "./SelectedProductRow";
@@ -7,7 +6,8 @@ import { Button } from "@/components/ui/button";
 export type ProdEntry = {
   product: Product;
   cantidad: number;
-  precio: number;
+  precio_venta: number;
+  precio_compra: number;
 };
 
 interface ProductTableProps {
@@ -25,8 +25,12 @@ const ProductTable: React.FC<ProductTableProps> = ({
     setProds(p => p.map((prod, i) => i === idx ? { ...prod, cantidad: qty } : prod));
   };
 
-  const handlePriceChange = (idx: number, price: number) => {
-    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio: price } : prod));
+  const handlePrecioVentaChange = (idx: number, price: number) => {
+    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio_venta: price } : prod));
+  };
+
+  const handlePrecioCompraChange = (idx: number, price: number) => {
+    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio_compra: price } : prod));
   };
 
   const handleRemove = (idx: number) => {
@@ -54,15 +58,17 @@ const ProductTable: React.FC<ProductTableProps> = ({
               <th className="px-2 py-1 text-left font-semibold">Producto</th>
               <th className="px-2 py-1 text-left font-semibold">Código</th>
               <th className="px-2 py-1 font-semibold">Cantidad</th>
-              <th className="px-2 py-1 font-semibold">Precio unit.</th>
+              <th className="px-2 py-1 font-semibold">Precio Venta</th>
+              <th className="px-2 py-1 font-semibold">Precio Compra</th>
               <th className="px-2 py-1 font-semibold text-right">Subtotal</th>
+              <th className="px-2 py-1 font-semibold text-center">Ganancia</th>
               <th className="px-2 py-1 text-center font-semibold">Quitar</th>
             </tr>
           </thead>
           <tbody>
             {prods.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center text-gray-400 py-4">Sin productos</td>
+                <td colSpan={8} className="text-center text-gray-400 py-4">Sin productos</td>
               </tr>
             ) : (
               prods.map((entry, idx) => (
@@ -70,9 +76,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   key={idx}
                   product={entry.product}
                   cantidad={entry.cantidad}
-                  precio={entry.precio}
+                  precio_venta={entry.precio_venta}
+                  precio_compra={entry.precio_compra}
                   onCantidadChange={qty => handleQtyChange(idx, qty)}
-                  onPrecioChange={price => handlePriceChange(idx, price)}
+                  onPrecioVentaChange={price => handlePrecioVentaChange(idx, price)}
+                  onPrecioCompraChange={price => handlePrecioCompraChange(idx, price)}
                   onRemove={() => handleRemove(idx)}
                 />
               ))
@@ -84,4 +92,4 @@ const ProductTable: React.FC<ProductTableProps> = ({
   );
 };
 
-export default ProductTable;
+export default ProductTable; 

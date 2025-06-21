@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { format } from 'date-fns';
 import { generatePedidoPDF } from '@/utils/generatePedidoPDF';
 import { generateClientesReportPDF } from '@/utils/generateReportPDF';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface ClienteFormProps {
   cliente: any;
@@ -16,24 +18,69 @@ interface ClienteFormProps {
   onCancel: () => void;
 }
 
-const emptyCliente = { nombre: "", telefono: "", email: "" };
+const emptyCliente = { 
+  nombre: "", 
+  telefono: "", 
+  email: "", 
+  es_empresa: false,
+  ruc: "",
+  razon_social: ""
+};
 
 const ClienteForm: React.FC<ClienteFormProps> = ({ cliente, onSave, onCancel }) => {
   const [form, setForm] = useState(cliente || emptyCliente);  
+  
   return (
     <form
-      className="space-y-2"
+      className="space-y-4"
       onSubmit={e => {
         e.preventDefault();
         onSave(form);
       }}
     >
-      <Input
-        required
-        placeholder="Nombre completo"
-        value={form.nombre}
-        onChange={e => setForm({ ...form, nombre: e.target.value })}
-      />
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="es_empresa"
+          checked={form.es_empresa || false}
+          onCheckedChange={(checked) => 
+            setForm({ ...form, es_empresa: checked as boolean })
+          }
+        />
+        <Label htmlFor="es_empresa" className="text-sm font-medium">
+          Es empresa
+        </Label>
+      </div>
+
+      {form.es_empresa ? (
+        // Campos para empresa
+        <>
+          <Input
+            required
+            placeholder="Razón Social"
+            value={form.razon_social || ""}
+            onChange={e => setForm({ ...form, razon_social: e.target.value })}
+          />
+          <Input
+            placeholder="RUC"
+            value={form.ruc || ""}
+            onChange={e => setForm({ ...form, ruc: e.target.value })}
+          />
+          <Input
+            placeholder="Nombre de contacto (opcional)"
+            value={form.nombre || ""}
+            onChange={e => setForm({ ...form, nombre: e.target.value })}
+          />
+        </>
+      ) : (
+        // Campos para persona
+        <Input
+          required
+          placeholder="Nombre completo"
+          value={form.nombre}
+          onChange={e => setForm({ ...form, nombre: e.target.value })}
+        />
+      )}
+
       <Input
         placeholder="Teléfono"
         value={form.telefono || ""}
@@ -45,7 +92,8 @@ const ClienteForm: React.FC<ClienteFormProps> = ({ cliente, onSave, onCancel }) 
         type="email"
         onChange={e => setForm({ ...form, email: e.target.value })}
       />
-      <div className="flex gap-2 mt-2">
+      
+      <div className="flex gap-2 mt-4">
         <Button type="submit" variant="default">Guardar</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
       </div>
@@ -73,8 +121,10 @@ const ClientesListPanel: React.FC = () => {
 
   const filteredClientes = clientes.filter(
     c =>
-      c.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      (c.email?.toLowerCase().includes(search.toLowerCase()) ?? false)
+      c?.nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      (c?.email?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      (c?.es_empresa && c?.razon_social?.toLowerCase().includes(search.toLowerCase())) ||
+      (c?.es_empresa && c?.ruc?.toLowerCase().includes(search.toLowerCase()))
   );
 
   const pedidosCliente = pedidos.filter(p =>
@@ -87,7 +137,7 @@ const ClientesListPanel: React.FC = () => {
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-2 justify-between items-center">
         <Input
-          placeholder="Buscar cliente por nombre o email..."
+          placeholder="Buscar por nombre, email, RUC o razón social..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full md:w-64"
@@ -132,12 +182,23 @@ const ClientesListPanel: React.FC = () => {
                   <div
                     key={cliente.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition"
                   >
-                    <div>
+                    <div className="flex-1">
                       <div className="font-semibold text-brand-navy">
                         <Link to={`/clientes/${cliente.id}`} className="hover:underline">
-                          {cliente.nombre}
+                          {cliente?.es_empresa ? cliente?.razon_social || cliente?.nombre : cliente?.nombre}
                         </Link>
+                        {cliente?.es_empresa && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            Empresa
+                          </span>
+                        )}
                       </div>
+                      {cliente?.es_empresa && cliente?.ruc && (
+                        <div className="text-xs text-gray-600">RUC: {cliente.ruc}</div>
+                      )}
+                      {cliente?.es_empresa && cliente?.nombre && cliente?.nombre !== cliente?.razon_social && (
+                        <div className="text-sm text-gray-700">Contacto: {cliente.nombre}</div>
+                      )}
                       <div className="text-sm text-gray-700">{cliente.email || "—"}</div>
                       <div className="text-xs text-gray-500">{cliente.telefono || "—"}</div>
                     </div>

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useLocation, Link } from "react-router-dom";
 import { Box, ShoppingBag, Database, Settings, Users } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const sections = [
   {
@@ -65,6 +66,17 @@ const sections = [
     ],
   },
   {
+    group: "Cotizaciones",
+    items: [
+      {
+        label: "Gestionar Cotizaciones",
+        to: "/admin?section=cotizaciones",
+        icon: ShoppingBag,
+        section: "cotizaciones",
+      },
+    ],
+  },
+  {
     group: "Datos & Reportes",
     items: [
       {
@@ -102,6 +114,7 @@ function getCurrentSection(search: string) {
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
   const currentSection = getCurrentSection(location.search);
+  const { user, hasRole } = useAuth();
 
   return (
     <Sidebar>
@@ -128,6 +141,22 @@ const AdminSidebar: React.FC = () => {
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+        {user && hasRole('Administrador') && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Auditoría</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link to="/admin/auditoria">
+                      <span className="icon">🕵️‍♂️</span> Auditoría
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );

@@ -36,7 +36,7 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) 
       if (found) {
         setForm({
           ...form,
-          cliente_nombre: found.nombre,
+          cliente_nombre: found.es_empresa ? found.razon_social || found.nombre : found.nombre,
           cliente_telefono: found.telefono || "",
           cliente_email: found.email || "",
           cliente_id: found.id
@@ -47,15 +47,34 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) 
   }, [form.cliente_id, clientes]);
 
   const filteredClientes = clientes.filter(c =>
-    c.nombre.toLowerCase().includes(clienteSearch.toLowerCase()) ||
-    (c.email || "").toLowerCase().includes(clienteSearch.toLowerCase())
+    c?.nombre?.toLowerCase().includes(clienteSearch.toLowerCase()) ||
+    (c?.email || "").toLowerCase().includes(clienteSearch.toLowerCase()) ||
+    (c?.es_empresa && c?.razon_social?.toLowerCase().includes(clienteSearch.toLowerCase())) ||
+    (c?.es_empresa && c?.ruc?.toLowerCase().includes(clienteSearch.toLowerCase()))
   );
   const selectedCliente = form.cliente_id ? clientes.find(c => c.id === form.cliente_id) : null;
   const showSelectedOnTop = selectedCliente && !filteredClientes.some(c => c.id === selectedCliente.id);
 
+  const getClienteDisplayName = (cliente: any) => {
+    if (!cliente) return "";
+    if (cliente.es_empresa) {
+      const displayName = cliente.razon_social || cliente.nombre || "";
+      const contactInfo = cliente.nombre && cliente.nombre !== cliente.razon_social 
+        ? ` (${cliente.nombre})` 
+        : '';
+      return `${displayName}${contactInfo}`;
+    }
+    return cliente.nombre || "";
+  };
+
   const handleAddProduct = (product) => {
     if (prods.find(pe => pe.product.id === product.id)) return;
-    setProds(prev => [...prev, { product, cantidad: 1, precio: product.unitPrice }]);
+    setProds(prev => [...prev, { 
+      product, 
+      cantidad: 1, 
+      precio_venta: product.unitPrice,
+      precio_compra: 0
+    }]);
     setShowAddDialog(false);
   };
 
@@ -73,9 +92,13 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) 
     setSaving(true);
     try {
       const prodToStore = prods.map(prod => ({
+        id: prod.product.id,
         nombre: prod.product.name,
+        codigo: prod.product.code,
         cantidad: Number(prod.cantidad),
-        precio: Number(prod.precio),
+        precio_venta: Number(prod.precio_venta),
+        precio_compra: Number(prod.precio_compra),
+        subtotal: Number(prod.cantidad * prod.precio_venta),
       }));
       await onSave({
         ...form,
@@ -113,7 +136,7 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) 
               <div className="px-2 py-1 sticky top-0 bg-popover z-10">
                 <Input
                   autoFocus
-                  placeholder="Buscar cliente por nombre o email..."
+                  placeholder="Buscar por nombre, email, RUC o razón social..."
                   value={clienteSearch}
                   onChange={e => setClienteSearch(e.target.value)}
                   className="mb-2"
@@ -121,7 +144,7 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) 
               </div>
               {showSelectedOnTop && selectedCliente && (
                 <SelectItem value={selectedCliente.id} key={selectedCliente.id}>
-                  {selectedCliente.nombre} - {selectedCliente.email || selectedCliente.telefono || "sin contacto"} (actual)
+                  {getClienteDisplayName(selectedCliente)} (actual)
                 </SelectItem>
               )}
               {filteredClientes.length === 0 ? (
@@ -129,7 +152,7 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) 
               ) : (
                 filteredClientes.map(c => (
                   <SelectItem value={c.id} key={c.id}>
-                    {c.nombre} - {c.email || c.telefono || "sin contacto"}
+                    {getClienteDisplayName(c)}
                   </SelectItem>
                 ))
               )}

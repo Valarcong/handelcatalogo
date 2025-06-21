@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -7,6 +6,9 @@ export interface ClienteSelectorOption {
   nombre: string;
   email?: string;
   telefono?: string;
+  es_empresa?: boolean;
+  ruc?: string;
+  razon_social?: string;
 }
 
 export const useClienteSelector = () => {
@@ -19,10 +21,10 @@ export const useClienteSelector = () => {
       setLoading(true);
       let query = supabase
         .from("clientes")
-        .select("id,nombre,email,telefono")
+        .select("id,nombre,email,telefono,es_empresa,ruc,razon_social")
         .order("nombre", { ascending: true });
       if (search && search.length > 1) {
-        query = query.ilike("nombre", `%${search}%`);
+        query = query.or(`nombre.ilike.%${search}%,email.ilike.%${search}%,razon_social.ilike.%${search}%,ruc.ilike.%${search}%`);
       }
       const { data, error } = await query;
       if (!error && Array.isArray(data)) setClientes(data);

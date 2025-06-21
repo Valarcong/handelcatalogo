@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Pedido, PedidoEstado } from "@/types/order";
 import { PEDIDO_ESTADOS } from "@/types/order";
@@ -14,6 +13,7 @@ interface OrderTableProps {
   onCancelar: (p: Pedido) => void;
   onEdit: (p: Pedido) => void;
   onPDF: (p: Pedido) => void;
+  onDelete: (p: Pedido) => void;
 }
 
 export const OrderTable: React.FC<OrderTableProps> = ({
@@ -26,6 +26,7 @@ export const OrderTable: React.FC<OrderTableProps> = ({
   onCancelar,
   onEdit,
   onPDF,
+  onDelete,
 }) => {
   return (
     <div className="overflow-x-auto">
@@ -38,6 +39,8 @@ export const OrderTable: React.FC<OrderTableProps> = ({
             <th className="p-2">Teléfono</th>
             <th className="p-2">Estado</th>
             <th className="p-2">Total</th>
+            <th className="p-2">Ganancia</th>
+            <th className="p-2">Margen %</th>
             <th className="p-2">Creado</th>
             <th className="p-2">Productos</th>
             <th className="p-2">Acción</th>
@@ -46,7 +49,7 @@ export const OrderTable: React.FC<OrderTableProps> = ({
         <tbody>
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={9} className="text-center py-4 text-gray-400">
+              <td colSpan={11} className="text-center py-4 text-gray-400">
                 No hay pedidos registrados o ningún pedido coincide con los filtros.
               </td>
             </tr>
@@ -62,6 +65,7 @@ export const OrderTable: React.FC<OrderTableProps> = ({
                 onCancelar={() => onCancelar(p)}
                 onEdit={() => onEdit(p)}
                 onPDF={() => onPDF(p)}
+                onDelete={() => onDelete(p)}
               />
             ))
           )}
