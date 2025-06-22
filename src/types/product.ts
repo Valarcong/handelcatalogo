@@ -10,6 +10,8 @@ export interface Product {
   wholesalePrice: number;
   tags: string[];
   minimumWholesaleQuantity: number;
+  technicalSpecs?: Record<string, string>;
+  features?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +21,12 @@ export interface Category {
   name: string;
   count: number;
   image?: string;
+  etiquetas: string[] | null;
+  cantidad_minima_mayorista: number;
+  especificaciones_tecnicas: Record<string, string> | null;
+  caracteristicas: string[] | null;
+  created_at: string;
+  updatedAt: string;
 }
 
 export interface CartItem {
@@ -39,6 +47,8 @@ export interface DbProduct {
   precio_por_mayor: number;
   etiquetas: string[] | null;
   cantidad_minima_mayorista: number;
+  especificaciones_tecnicas: Record<string, string> | null;
+  caracteristicas: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +111,8 @@ export const transformDbProduct = (dbProduct: DbProduct): Product => ({
   minimumWholesaleQuantity: typeof dbProduct.cantidad_minima_mayorista === "number"
     ? dbProduct.cantidad_minima_mayorista
     : 10,
+  technicalSpecs: dbProduct.especificaciones_tecnicas || {},
+  features: dbProduct.caracteristicas || [],
   createdAt: dbProduct.created_at ? new Date(dbProduct.created_at) : new Date(),
   updatedAt: dbProduct.updated_at ? new Date(dbProduct.updated_at) : new Date(),
 });
@@ -109,5 +121,11 @@ export const transformDbCategory = (dbCategory: DbCategory): Category => ({
   id: dbCategory.id,
   name: dbCategory.nombre,
   count: 0, // Will be calculated separately
-  image: dbCategory.imagen_url || undefined
+  image: dbCategory.imagen_url || undefined,
+  etiquetas: null,
+  cantidad_minima_mayorista: 0,
+  especificaciones_tecnicas: null,
+  caracteristicas: null,
+  created_at: "",
+  updatedAt: "",
 });

@@ -4,15 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus, Image as ImageIcon, TestTube } from 'lucide-react';
 import { Category } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ImageUpload from './ImageUpload';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CategoryManagementProps {
   categories: Category[];
   onRefresh: () => void;
 }
+
+// Imágenes disponibles en el proyecto
+const AVAILABLE_IMAGES = [
+  { value: '/imagenes/categorias/motoreductor_bg.jpeg', label: 'Motor Reductor' },
+  { value: '/imagenes/marcas/WMO_MOTORS_CATEGORY_W22_BANNER_ES.png', label: 'WMO Motors' },
+  { value: '/imagenes/marcas/Fabricacion_Reductores_Especiales.png', label: 'Fabricación Reductores' },
+  { value: '/placeholder.svg', label: 'Imagen por defecto' },
+];
 
 const CategoryManagement: React.FC<CategoryManagementProps> = ({ 
   categories, 
@@ -25,6 +35,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     imagen_url: ''
   });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [imageSource, setImageSource] = useState<'upload' | 'select' | 'url'>('select');
+  const [testResult, setTestResult] = useState<string>("");
 
   const handleAddCategory = async () => {
     if (!newCategory.nombre.trim()) {
@@ -39,21 +51,23 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     try {
       const { error } = await supabase
         .from('categorias')
-        .insert([{ nombre: newCategory.nombre.trim(), imagen_url: newCategory.imagen_url || '/placeholder.svg' }]);
+        .insert([{ 
+          nombre: newCategory.nombre.trim(), 
+          imagen_url: newCategory.imagen_url || '/placeholder.svg' 
+        }]);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setNewCategory({ nombre: '', imagen_url: '' });
       setShowAddForm(false);
+      setImageSource('select');
       onRefresh();
       
       toast({
         title: "Categoría agregada",
         description: "La categoría ha sido agregada exitosamente.",
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         title: "Error",
         description: "Error al agregar la categoría.",
@@ -75,12 +89,13 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     try {
       const { error } = await supabase
         .from('categorias')
-        .update({ nombre: editingCategory.name.trim(), imagen_url: editingCategory.image || '/placeholder.svg' })
+        .update({ 
+          nombre: editingCategory.name.trim(), 
+          imagen_url: editingCategory.image || '/placeholder.svg' 
+        })
         .eq('id', editingCategory.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setEditingCategory(null);
       onRefresh();
@@ -89,7 +104,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         title: "Categoría actualizada",
         description: "La categoría ha sido actualizada exitosamente.",
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         title: "Error",
         description: "Error al actualizar la categoría.",
@@ -106,9 +121,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           .delete()
           .eq('id', id);
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         onRefresh();
         
@@ -116,7 +129,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           title: "Categoría eliminada",
           description: "La categoría ha sido eliminada exitosamente.",
         });
-      } catch (error) {
+      } catch (err) {
         toast({
           title: "Error",
           description: "Error al eliminar la categoría.",
@@ -126,8 +139,145 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     }
   };
 
+  const testSupabaseStorage = async () => {
+    setTestResult("Probando conexión a Supabase Storage...");
+    try {
+      // Probar listar archivos en el bucket
+      const { data, error } = await supabase.storage
+        .from('products')
+        .list('categories', { limit: 1 });
+
+      if (error) {
+        setTestResult(`❌ Error: ${error.message}`);
+      } else {
+        setTestResult(`✅ Conexión exitosa! Archivos en categorías: ${data?.length || 0}`);
+      }
+    } catch (err: any) {
+      setTestResult(`❌ Error de conexión: ${err.message}`);
+    }
+  };
+
+  const renderImageInput = (value: string, onChange: (url: string) => void, isEditing = false) => {
+    return (
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={imageSource === 'select' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setImageSource('select')}
+          >
+            <ImageIcon className="h-4 w-4 mr-1" />
+            Seleccionar existente
+          </Button>
+          <Button
+            type="button"
+            variant={imageSource === 'upload' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setImageSource('upload')}
+          >
+            <ImageIcon className="h-4 w-4 mr-1" />
+            Subir nueva
+          </Button>
+          <Button
+            type="button"
+            variant={imageSource === 'url' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setImageSource('url')}
+          >
+            <ImageIcon className="h-4 w-4 mr-1" />
+            URL externa
+          </Button>
+        </div>
+
+        {imageSource === 'select' && (
+          <div>
+            <Label>Seleccionar imagen existente</Label>
+            <Select value={value} onValueChange={onChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una imagen" />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABLE_IMAGES.map((img) => (
+                  <SelectItem key={img.value} value={img.value}>
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={img.value} 
+                        alt={img.label} 
+                        className="w-6 h-6 object-cover rounded"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                      {img.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {imageSource === 'upload' && (
+          <ImageUpload
+            value={value}
+            onChange={onChange}
+            folder="categories"
+            label="Subir imagen de categoría"
+          />
+        )}
+
+        {imageSource === 'url' && (
+          <div>
+            <Label>URL de imagen externa</Label>
+            <Input
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="https://ejemplo.com/imagen.jpg"
+            />
+          </div>
+        )}
+
+        {/* Vista previa */}
+        {value && (
+          <div className="mt-2">
+            <Label>Vista previa:</Label>
+            <div className="mt-1 w-24 h-24 rounded bg-gray-100 overflow-hidden border border-gray-200">
+              <img
+                src={value}
+                alt="Vista previa"
+                className="object-cover w-full h-full"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
+      {/* Botón de prueba de conexión */}
+      <div className="flex gap-2 mb-4">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={testSupabaseStorage}
+          className="text-xs"
+        >
+          <TestTube className="h-3 w-3 mr-1" />
+          Probar Storage
+        </Button>
+        {testResult && (
+          <span className="text-xs text-gray-600 self-center">
+            {testResult}
+          </span>
+        )}
+      </div>
+
       {/* Formulario para agregar nueva categoría */}
       <Card>
         <CardHeader>
@@ -154,15 +304,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   placeholder="Ej: Contenedores"
                 />
               </div>
-              <div>
-                <Label htmlFor="categoryImage">URL de Imagen</Label>
-                <Input
-                  id="categoryImage"
-                  value={newCategory.imagen_url}
-                  onChange={(e) => setNewCategory({ ...newCategory, imagen_url: e.target.value })}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                />
-              </div>
+              
+              {renderImageInput(
+                newCategory.imagen_url,
+                (url) => setNewCategory({ ...newCategory, imagen_url: url })
+              )}
+
               <div className="flex gap-2">
                 <Button onClick={handleAddCategory}>
                   Agregar Categoría
@@ -172,6 +319,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   onClick={() => {
                     setShowAddForm(false);
                     setNewCategory({ nombre: '', imagen_url: '' });
+                    setImageSource('select');
                   }}
                 >
                   Cancelar
@@ -192,17 +340,19 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
             {categories.map((category) => (
               <div key={category.id} className="border rounded-lg p-4 flex items-center justify-between">
                 {editingCategory?.id === category.id ? (
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 space-y-4">
                     <Input
                       value={editingCategory.name}
                       onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                       placeholder="Nombre de la categoría"
                     />
-                    <Input
-                      value={editingCategory.image || ''}
-                      onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
-                      placeholder="URL de imagen"
-                    />
+                    
+                    {renderImageInput(
+                      editingCategory.image || '',
+                      (url) => setEditingCategory({ ...editingCategory, image: url }),
+                      true
+                    )}
+
                     <div className="flex gap-2">
                       <Button size="sm" onClick={handleUpdateCategory}>
                         Guardar
@@ -219,11 +369,23 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 ) : (
                   <>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{category.name}</h3>
-                        <Badge variant="outline">{category.count} productos</Badge>
+                      <div className="flex items-center gap-4 mb-2">
+                        <div className="w-16 h-16 rounded bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
+                          <img
+                            src={category.image || '/placeholder.svg'}
+                            alt={category.name}
+                            className="object-cover w-full h-full"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{category.name}</h3>
+                          <Badge variant="outline">{category.count} productos</Badge>
+                        </div>
                       </div>
-                      {category.image && (
+                      {category.image && category.image !== '/placeholder.svg' && (
                         <p className="text-sm text-gray-600">Imagen: {category.image}</p>
                       )}
                     </div>

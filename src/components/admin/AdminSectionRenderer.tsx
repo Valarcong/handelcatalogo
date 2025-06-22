@@ -40,7 +40,7 @@ const AdminSectionRenderer: React.FC<AdminSectionRendererProps> = ({
     manage: (props: any) => <ProductManagement {...props} />,
     categories: (props: any) => <CategoryManagement {...props} />,
     import: (props: any) => <ImportExport {...props} />,
-    stats: (props: any) => <AdminStats {...props} />,
+    stats: () => <AdminStats />,
     pedidos: () => <OrderManagement />,
     settings: () => (
       <div className="p-8 text-gray-400">
@@ -52,6 +52,10 @@ const AdminSectionRenderer: React.FC<AdminSectionRendererProps> = ({
     cotizaciones: () => <QuotationManagement />,
   };
 
+  if (section === 'stats') {
+    return <AdminStats />;
+  }
+  
   if (!(section in sectionComponents)) {
     return <div className="p-8 text-gray-400">Sección no encontrada.</div>;
   }

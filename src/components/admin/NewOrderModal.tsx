@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Pedido } from "@/types/order";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import ProductSearchDialog from "./ProductSearchDialog";
 import ProductTable from "./ProductTable";
 import OrderSummary from "./OrderSummary";
@@ -18,7 +17,7 @@ interface NewOrderModalProps {
 }
 
 const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose, onSave }) => {
-  const { form, setForm, prods, setProds, total, allProducts } = useOrderForm(null);
+  const { form, setForm, prods, setProds, total } = useOrderForm(null);
   const { clientes } = useClienteSelector();
   const [clienteSearch, setClienteSearch] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);

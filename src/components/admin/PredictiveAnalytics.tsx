@@ -1,198 +1,192 @@
-
 import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Pedido } from "@/types/order";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Line } from "recharts";
 import { usePredictiveAnalytics } from "@/hooks/analytics/usePredictiveAnalytics";
 import { Badge } from "@/components/ui/badge";
 import { Product } from "@/types/product";
-import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { notifyDirect } from "@/hooks/useNotifications";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Brain, TrendingUp, AlertTriangle, Lightbulb, Target, TestTube } from "lucide-react";
+import { type DateRange } from "react-day-picker";
 
 interface Props {
   pedidos: Pedido[];
-  userId: string | null;
-  periodo?: { from: string; to: string };
+  productos: Product[];
+  dateRange: DateRange | undefined;
 }
 
-const PredictiveAnalytics: React.FC<Props> = ({ pedidos, userId, periodo }) => {
-  const { salesSeries, prediction, trendingProducts } = usePredictiveAnalytics(pedidos);
-  // Para insights de IA
-  const [aiInsights, setAiInsights] = useState<string>("");
-  const [insightLoading, setInsightLoading] = useState(false);
-  const [insightError, setInsightError] = useState<string | null>(null);
+const PredictiveAnalytics: React.FC<Props> = ({ pedidos, productos, dateRange }) => {
+  const {
+    insights,
+    loading,
+    error,
+    analyzeBusinessData,
+    clearAnalysis
+  } = usePredictiveAnalytics();
 
-  // Productos para prompt
-  const productsDataHook = typeof useProducts === "function" ? useProducts() : undefined;
-  const productos = productsDataHook?.products ?? [];
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [testResult, setTestResult] = useState<string>("");
 
-  const chartData = [
-    ...salesSeries,
-    {
-      month: "Próximo",
-      total: Math.round(prediction.forecast),
-      prediction: true,
-    }
-  ];
-
-  // Nuevo: también enviar periodo seleccionado 
-  const fetchAIInsights = async () => {
-    setInsightLoading(true);
-    setInsightError(null);
+  const handleAnalyze = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-business-data", {
-        body: {
-          pedidos,
-          productos,
-          periodo: periodo || (salesSeries.length ? { from: salesSeries[0]?.month, to: salesSeries.at(-1)?.month } : {}),
-        },
-      });
-      if (error) throw new Error(error.message ?? "No se pudo obtener el análisis IA");
-      setAiInsights(data?.insights ?? "Sin respuesta de la IA.");
-    } catch (err: any) {
-      setInsightError(err.message ?? "Error desconocido");
+      await analyzeBusinessData(pedidos, productos, dateRange);
+      setHasAnalyzed(true);
+    } catch (err) {
+      console.error("Error al analizar datos:", err);
     }
-    setInsightLoading(false);
   };
 
-  const { toast } = useToast();
-
-  // Guardar alerta IA como notificación usando el userId de props
-  const handleCrearAlertaIA = async () => {
-    if (!userId || !aiInsights) {
-      toast({ title: "Falta usuario o análisis IA", variant: "destructive" });
-      return;
-    }
+  const testSupabaseConnection = async () => {
+    setTestResult("Probando conexión...");
     try {
-      await notifyDirect({
-        usuario_id: userId,
-        tipo: "alerta_ia",
-        titulo: "Alerta predictiva IA",
-        mensaje: aiInsights,
+      const { data, error } = await supabase.functions.invoke('analyze-business-data', {
+        body: {
+          pedidos: pedidos.slice(0, 2),
+          productos: productos.slice(0, 5),
+          periodo: dateRange
+        }
       });
-      toast({
-        title: "¡Alerta creada!",
-        description: "La alerta de IA ha sido guardada para ti.",
-        variant: "default",
-      });
+
+      if (error) {
+        setTestResult(`Error: ${error.message}`);
+      } else {
+        setTestResult(`✅ Conexión exitosa! Respuesta: ${data?.insights ? 'Análisis generado' : 'Sin análisis'}`);
+      }
     } catch (err: any) {
-      toast({
-        title: "No se pudo guardar alerta",
-        description: err?.message ?? "Error desconocido.",
-        variant: "destructive",
-      });
+      setTestResult(`❌ Error de conexión: ${err.message}`);
     }
+  };
+
+  const formatInsights = (insights: string) => {
+    // Dividir por secciones y formatear
+    const sections = insights.split(/(?=^\d+\.|^📈|^⚠️|^✅|^🔮)/m).filter(Boolean);
+    
+    return sections.map((section, index) => {
+      const lines = section.trim().split('\n');
+      const title = lines[0];
+      const content = lines.slice(1).join('\n');
+      
+      return (
+        <div key={index} className="mb-6">
+          <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            {title.includes('📈') && <TrendingUp className="h-4 w-4 text-green-600" />}
+            {title.includes('⚠️') && <AlertTriangle className="h-4 w-4 text-orange-600" />}
+            {title.includes('✅') && <Lightbulb className="h-4 w-4 text-blue-600" />}
+            {title.includes('🔮') && <Target className="h-4 w-4 text-purple-600" />}
+            {title}
+          </h4>
+          <div className="text-sm text-gray-700 whitespace-pre-line pl-6">
+            {content}
+          </div>
+        </div>
+      );
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Predicción de Ventas (Próximo periodo)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-            <span className="text-4xl font-bold text-green-700">S/. {Math.round(prediction.forecast).toLocaleString()}</span>
-            <span className="ml-3 text-gray-500">Base: regresión lineal de ventas históricas</span>
-          </div>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="month" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="total" fill="#2563eb" isAnimationActive />
-              <Line type="monotone" dataKey="total" stroke="#10b981" dot={false} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Insights de IA (OpenAI)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-2 flex flex-col sm:flex-row gap-2">
-            <button
-              onClick={fetchAIInsights}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded transition"
-              disabled={insightLoading || pedidos.length < 2}
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Brain className="h-5 w-5 text-blue-600" />
+          Análisis Predictivo IA
+        </CardTitle>
+        <CardDescription>
+          Análisis inteligente de tendencias y predicciones basado en tus datos
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Botón de prueba de conexión */}
+        <div className="flex gap-2 mb-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={testSupabaseConnection}
+            className="text-xs"
+          >
+            <TestTube className="h-3 w-3 mr-1" />
+            Probar Conexión
+          </Button>
+          {testResult && (
+            <span className="text-xs text-gray-600 self-center">
+              {testResult}
+            </span>
+          )}
+        </div>
+
+        {!hasAnalyzed ? (
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 mb-4">
+              Analiza tus datos con IA para obtener insights predictivos y recomendaciones
+            </p>
+            <Button 
+              onClick={handleAnalyze} 
+              disabled={loading || pedidos.length < 2}
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              {insightLoading ? "Generando análisis inteligente..." : "Generar Análisis Inteligente"}
-            </button>
-            {aiInsights && (
-              <button
-                onClick={handleCrearAlertaIA}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
-              >
-                Guardar como Alerta Predictiva
-              </button>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Analizando...
+                </>
+              ) : (
+                <>
+                  <Brain className="h-4 w-4 mr-2" />
+                  Iniciar Análisis IA
+                </>
+              )}
+            </Button>
+            {pedidos.length < 2 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Necesitas al menos 2 pedidos para realizar el análisis
+              </p>
             )}
           </div>
-          {insightError && (
-            <div className="text-sm text-red-600 mb-2">Error: {insightError}</div>
-          )}
-          {aiInsights && (
-            <div className="bg-gray-50 border border-gray-200 rounded p-4 text-sm whitespace-pre-wrap">
-              {aiInsights}
-              <div className="text-gray-400 text-xs mt-2">
-                <b>Configuración IA usada:</b>
-                <ul className="ml-4">
-                  <li>Modelo: <b>GPT-4o</b></li>
-                  <li>Temperature: <b>0.2</b></li>
-                  <li>Máx tokens: <b>550</b></li>
-                  <li>Periodo enviado: <b>{periodo?.from} a {periodo?.to}</b></li>
-                </ul>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                Análisis IA Completado
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  clearAnalysis();
+                  setHasAnalyzed(false);
+                }}
+              >
+                Nuevo Análisis
+              </Button>
+            </div>
+
+            {error ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Error al analizar datos: {error}
+                  <br />
+                  <span className="text-xs mt-2 block">
+                    Verifica que la función de Supabase esté desplegada y configurada correctamente.
+                  </span>
+                </AlertDescription>
+              </Alert>
+            ) : insights ? (
+              <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                <div className="prose prose-sm max-w-none">
+                  {formatInsights(insights)}
+                </div>
               </div>
-            </div>
-          )}
-          {!aiInsights && !insightLoading && !insightError && (
-            <div className="text-xs text-gray-400">Haz clic para generar un análisis estratégico de tu negocio usando IA.</div>
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Productos con tendencia</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-6">
-            <div>
-              <div className="font-semibold mb-1 text-green-800">En crecimiento</div>
-              {trendingProducts.growing.length === 0 && <div className="text-xs text-gray-400">Sin productos en crecimiento reciente</div>}
-              {trendingProducts.growing.map((item) => (
-                <div key={item.name} className="mb-1 flex items-center gap-2">
-                  <Badge variant="default" className="bg-green-600/80">{item.name}</Badge>
-                  <span className="text-xs text-green-600">+{item.growth}</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="font-semibold mb-1 text-red-800">En declive</div>
-              {trendingProducts.declining.length === 0 && <div className="text-xs text-gray-400">Sin productos en declive</div>}
-              {trendingProducts.declining.map((item) => (
-                <div key={item.name} className="mb-1 flex items-center gap-2">
-                  <Badge variant="destructive">{item.name}</Badge>
-                  <span className="text-xs text-red-600">{item.growth}</span>
-                </div>
-              ))}
-            </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                No se pudo generar el análisis
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Próximos pasos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="text-xs text-gray-500 list-disc ml-5">
-            <li>Puedes ampliar estos análisis agregando predicciones por categoría, clientes y márgenes futuro.</li>
-            <li>¿Quieres conectar IA de OpenAI para insights automáticos? Dímelo y lo integramos.</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

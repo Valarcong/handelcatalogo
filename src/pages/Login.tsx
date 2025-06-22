@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuthContext } from '@/hooks/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -70,9 +69,12 @@ const Login = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-2xl">Ω</span>
-          </div>
+          <img
+            src="/imagenes/logo/Handel_Logo_Color.png"
+            alt="Handel Logo"
+            className="mx-auto w-24 h-24 object-contain mb-4"
+            draggable={false}
+          />
           <CardTitle className="text-2xl font-bold text-gray-900">
             Panel de Administración
           </CardTitle>
@@ -91,7 +93,6 @@ const Login = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                placeholder="valarcong.ingsistemas@gmail.com"
                 className="mt-1"
               />
             </div>
@@ -105,7 +106,6 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                placeholder="********"
                 className="mt-1"
               />
             </div>

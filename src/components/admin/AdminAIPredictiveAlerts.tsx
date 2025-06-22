@@ -15,7 +15,6 @@ const AdminAIPredictiveAlerts: React.FC<Props> = ({ authId }) => {
     fetchNotifications,
     loading,
     error,
-    unreadCount,
   } = useNotifications(authId);
 
   // Logs para debugging

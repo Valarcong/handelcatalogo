@@ -4,19 +4,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Product } from '@/types/product';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Product, Category } from '@/types/product';
 import ImageUpload from "./ImageUpload";
 
 interface EditProductModalProps {
   editingProduct: Product | null;
   setEditingProduct: (product: Product | null) => void;
   onUpdateProduct: () => void;
+  categories: Category[];
 }
 
 const EditProductModal: React.FC<EditProductModalProps> = ({
   editingProduct,
   setEditingProduct,
-  onUpdateProduct
+  onUpdateProduct,
+  categories
 }) => {
   if (!editingProduct) return null;
 
@@ -67,10 +70,34 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Categoría</Label>
-              <Input
+              <Select
                 value={editingProduct.category}
-                onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
-              />
+                onValueChange={(value) => setEditingProduct({ ...editingProduct, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      <div className="flex items-center gap-2">
+                        {category.image && (
+                          <img 
+                            src={category.image} 
+                            alt={category.name} 
+                            className="w-4 h-4 object-cover rounded"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        )}
+                        {category.name}
+                        <span className="text-xs text-gray-500">({category.count})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Precio Unitario</Label>
@@ -116,7 +143,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             />
           </div>
 
-          {/* Nuevo campo Marca */}
+          {/* Campo Marca */}
           <div>
             <Label>Marca</Label>
             <Input

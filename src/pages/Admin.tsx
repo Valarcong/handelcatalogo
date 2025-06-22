@@ -5,7 +5,7 @@ import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate, useLocation, Routes, Route } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import EditProductModal from '@/components/admin/EditProductModal';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSectionRenderer from '@/components/admin/AdminSectionRenderer';
@@ -110,37 +110,32 @@ const Admin = () => {
         <AdminSidebar />
         <main className="flex-1 min-w-0 px-4 py-8">
           <AdminHeader user={user} />
-          <div className="mb-4">
-            <SidebarTrigger />
-          </div>
-          <AdminSectionRenderer
-            section={section}
-            products={products}
-            categories={categories}
-            onAddProduct={handleAddProduct}
-            onEditProduct={setEditingProduct}
-            onDeleteProduct={handleDeleteProduct}
-            onUpdateProduct={handleUpdateProduct}
-            onRefresh={refreshData}
-            editingProduct={editingProduct}
-            setEditingProduct={setEditingProduct}
-          />
+          <Routes>
+            <Route path="auditoria" element={<AdminAuditoria />} />
+            <Route path="*" element={
+              <AdminSectionRenderer
+                section={section}
+                products={products}
+                categories={categories}
+                onAddProduct={handleAddProduct}
+                onEditProduct={setEditingProduct}
+                onDeleteProduct={handleDeleteProduct}
+                onUpdateProduct={handleUpdateProduct}
+                onRefresh={refreshData}
+                editingProduct={editingProduct}
+                setEditingProduct={setEditingProduct}
+              />
+            } />
+          </Routes>
           <EditProductModal
             editingProduct={editingProduct}
             setEditingProduct={setEditingProduct}
             onUpdateProduct={handleUpdateProduct}
+            categories={categories}
           />
         </main>
       </div>
     </SidebarProvider>
-  );
-};
-
-const AdminRoutes = () => {
-  return (
-    <Routes>
-      <Route path="auditoria" element={<AdminAuditoria />} />
-    </Routes>
   );
 };
 

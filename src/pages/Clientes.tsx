@@ -1,7 +1,5 @@
 import React from "react";
 import ClientesListPanel from "../components/clientes/ClientesListPanel";
-import { Link } from "react-router-dom";
-import { Button } from "../components/ui/button";
 
 const Clientes = () => (
   <div className="max-w-4xl mx-auto py-8 px-4">

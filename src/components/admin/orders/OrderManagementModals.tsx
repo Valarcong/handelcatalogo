@@ -1,11 +1,7 @@
-import React, { useState } from "react";
-import { Pedido, PedidoEstado } from "@/types/order";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Trash2, AlertTriangle } from "lucide-react";
+import React from "react";
+import { Pedido } from "@/types/order";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertTriangle } from "lucide-react";
 import EditOrderModal from "../EditOrderModal";
 import CancelOrderModal from "../CancelOrderModal";
 import NewOrderModal from "../NewOrderModal";

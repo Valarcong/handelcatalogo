@@ -1,9 +1,17 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Cotizacion } from '@/hooks/useCotizaciones';
+import { Cotizacion as CotizacionBase } from '@/hooks/useCotizaciones';
 import logo from '@/../public/imagenes/logo/Handel_Logo_Color.png';
 
-export async function generateCotizacionPDF(cotizacion: Cotizacion, productos: any[], cliente: any) {
+// Tipo extendido para la cotización con todos los campos necesarios
+type CotizacionCompleta = CotizacionBase & {
+  correlativo?: number;
+  razon_social?: string;
+  nombre_cliente?: string;
+  ruc?: string;
+};
+
+export async function generateCotizacionPDF(cotizacion: CotizacionCompleta, productos: any[], cliente: any) {
   const doc = new jsPDF();
 
   // Logo
@@ -41,7 +49,7 @@ export async function generateCotizacionPDF(cotizacion: Cotizacion, productos: a
   doc.setFontSize(10);
   doc.text(`Atención: SR. ${nombreCliente}`, 14, y);
   y += 6;
-  doc.text('Vendedor: Vincent Alarcón', 14, y);
+  doc.text('Vendedor: Victor Costilla', 14, y);
 
   // Saludo
   y += 10;
@@ -116,7 +124,7 @@ export async function generateCotizacionPDF(cotizacion: Cotizacion, productos: a
   doc.setFontSize(10);
   doc.text('Atentamente', 14, y);
   y += 6;
-  doc.text('Vincent Alarcón', 14, y);
+  doc.text('Victor Costilla', 14, y);
   y += 6;
   doc.text('Asesor Técnico Comercial', 14, y);
   y += 6;

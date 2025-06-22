@@ -1,6 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import NotificationBell from "@/components/ui/NotificationBell";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface AdminHeaderProps {
   user: any;
@@ -26,7 +27,10 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ user }) => {
           </div>
         </div>
         {/* Notificaciones badge en la parte superior derecha */}
-        <NotificationBell userId={user.id} />
+        <div className="flex items-center gap-4">
+          <NotificationBell userId={user.id} />
+          <SidebarTrigger />
+        </div>
       </div>
     </div>
   );

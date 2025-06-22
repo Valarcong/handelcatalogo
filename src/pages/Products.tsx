@@ -1,20 +1,13 @@
 // Refactorizado: toda la lógica está dividida en componentes independientes.
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import { useProducts } from "@/hooks/useProducts";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Product } from "@/types/product";
-import ProductFilters from "@/components/products/ProductFilters";
-import ProductActiveFilters from "@/components/products/ProductActiveFilters";
-import ProductGrid from "@/components/products/ProductGrid";
-import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import { Search } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Package } from 'lucide-react';
 
 const Products = () => {
   const { products: rawProducts, categories, loading } = useProducts();
-  const isMobile = useIsMobile();
 
   // Fallback defensivo básico
   const products = useMemo(
@@ -26,15 +19,6 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("name");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
-
-  const brands = useMemo(() => {
-    const set = new Set(
-      products
-        .filter((p) => typeof p.brand === "string" && p.brand.length > 0)
-        .map((p) => p.brand || "omegaplast")
-    );
-    return Array.from(set);
-  }, [products]);
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
@@ -85,40 +69,6 @@ const Products = () => {
     }
     return filtered;
   }, [products, searchTerm, selectedCategory, sortBy, selectedBrand]);
-
-  const handleWhatsAppQuote = useCallback((product: Product, quantity: number) => {
-    if (!product || typeof product.name !== "string" || typeof product.code !== "string") return;
-    const totalPrice =
-      (quantity >= 10 ? product.wholesalePrice : product.unitPrice) * quantity;
-    const priceType = quantity >= 10 ? "Por Mayor" : "Unitario";
-    const message = `¡Hola! Me interesa este producto:
-
-🧾 *${product.name}*
-📋 Código: ${product.code}
-📦 Cantidad: ${quantity}
-💰 Precio ${priceType}: S/. ${(
-      quantity >= 10 ? product.wholesalePrice : product.unitPrice
-    ).toFixed(2)}
-💵 Total: *S/. ${totalPrice.toFixed(2)}*
-
-¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?
-
-¡Gracias!`;
-
-    const whatsappUrl = `https://wa.me/51970337910?text=${encodeURIComponent(
-      message
-    )}`;
-    window.open(whatsappUrl, "_blank");
-    // console.log('Cotización WhatsApp:', { product: product.name, quantity, totalPrice });
-  }, []);
-
-  const clearFilters = useCallback(() => {
-    setSearchTerm("");
-    setSelectedCategory("all");
-    setSortBy("name");
-    setSelectedBrand("all");
-    // console.log('Filtros limpiados');
-  }, []);
 
   if (loading) {
     return (

@@ -61,6 +61,15 @@ export function useNotifications(authId: string | null) {
     };
   }, [fetchNotifications]);
 
+  // Sondeo periódico para refrescar notificaciones
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // Refresca cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
   // Mejor gestión de suscripción en tiempo real
   useEffect(() => {
     // Limpieza anterior SIEMPRE primero (solo en cleanup)

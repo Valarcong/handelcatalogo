@@ -1,8 +1,6 @@
-
 import React, { useEffect } from "react";
 import { useOrders } from "@/hooks/useOrders";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { PEDIDO_ESTADOS } from "@/types/order";
 import { Download } from "lucide-react";
 import ProductSummaryPopover from "@/components/admin/ProductSummaryPopover";

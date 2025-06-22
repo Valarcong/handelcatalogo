@@ -3,11 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { 
-  ShoppingCart, 
   MessageCircle, 
   ArrowLeft, 
   Minus, 
@@ -18,26 +16,30 @@ import {
   Zap, 
   Shield, 
   Info,
-  Download,
   Share2,
   Heart,
   Star
 } from 'lucide-react';
-import { ResponsiveContainer, ResponsiveGrid, MobileOnly, DesktopOnly } from '@/components/ui/responsive';
+import { ResponsiveContainer, ResponsiveGrid } from '@/components/ui/responsive';
 
 const MIN_QTY = 1;
 const MAX_QTY = 999;
 
 // Componente para especificaciones técnicas
 const TechnicalSpecs: React.FC<{ product: any }> = ({ product }) => {
-  const specs = [
-    { icon: Package, label: 'Material', value: product.material || 'Poliestireno (PS)' },
-    { icon: Ruler, label: 'Dimensiones', value: product.dimensions || 'Variable según modelo' },
-    { icon: Thermometer, label: 'Temperatura', value: product.temperature || '-10°C a +70°C' },
-    { icon: Zap, label: 'Capacidad', value: product.capacity || 'Variable' },
-    { icon: Shield, label: 'Certificaciones', value: product.certifications || 'FDA, ISO 9001' },
-    { icon: Info, label: 'Código', value: product.code },
-  ];
+  // Combina specs por defecto con las del producto, dando prioridad a las del producto
+  const defaultSpecs = {
+    'Material': 'No especificado',
+    'Dimensiones': 'No especificado',
+    'Código': product.code,
+  };
+  
+  const specs = { ...defaultSpecs, ...product.technicalSpecs };
+  const specEntries = Object.entries(specs);
+
+  if (specEntries.length === 0 || specEntries.every(s => !s[1])) {
+    return <p className="text-gray-500">No hay especificaciones técnicas disponibles.</p>
+  }
 
   return (
     <div className="space-y-4">
@@ -46,12 +48,12 @@ const TechnicalSpecs: React.FC<{ product: any }> = ({ product }) => {
         Especificaciones Técnicas
       </h3>
       <ResponsiveGrid cols={{ mobile: 1, tablet: 2, desktop: 2 }}>
-        {specs.map((spec, index) => (
-          <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <spec.icon className="h-5 w-5 text-gray-600 flex-shrink-0" />
+        {specEntries.map(([key, value]: [string, string]) => (
+          <div key={key} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+            <Info className="h-5 w-5 text-gray-600 flex-shrink-0 mt-1" />
             <div>
-              <p className="text-sm font-medium text-gray-700">{spec.label}</p>
-              <p className="text-sm text-gray-600">{spec.value}</p>
+              <p className="text-sm font-medium text-gray-700">{key}</p>
+              <p className="text-sm text-gray-600">{value}</p>
             </div>
           </div>
         ))}
@@ -62,14 +64,11 @@ const TechnicalSpecs: React.FC<{ product: any }> = ({ product }) => {
 
 // Componente para características del producto
 const ProductFeatures: React.FC<{ product: any }> = ({ product }) => {
-  const features = [
-    'Resistente a altas temperaturas',
-    'Apto para microondas',
-    'Libre de BPA',
-    'Reutilizable',
-    'Fácil limpieza',
-    'Empaque ecológico'
-  ];
+  const features = product.features || [];
+
+  if (features.length === 0) {
+    return <p className="text-gray-500">No hay características destacadas disponibles.</p>
+  }
 
   return (
     <div className="space-y-4">
@@ -82,32 +81,6 @@ const ProductFeatures: React.FC<{ product: any }> = ({ product }) => {
           </li>
         ))}
       </ul>
-    </div>
-  );
-};
-
-// Componente para información de uso
-const UsageInfo: React.FC<{ product: any }> = ({ product }) => {
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800">Información de Uso</h3>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-medium text-blue-800 mb-2">Instrucciones de Uso</h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Lavar antes del primer uso</li>
-          <li>• No usar en horno convencional</li>
-          <li>• Temperatura máxima: 70°C</li>
-          <li>• No exponer a llamas directas</li>
-        </ul>
-      </div>
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h4 className="font-medium text-yellow-800 mb-2">Precauciones</h4>
-        <ul className="text-sm text-yellow-700 space-y-1">
-          <li>• Mantener fuera del alcance de niños</li>
-          <li>• No usar para almacenar productos químicos</li>
-          <li>• Revisar integridad antes de cada uso</li>
-        </ul>
-      </div>
     </div>
   );
 };
@@ -164,7 +137,6 @@ const ProductDetail: React.FC = () => {
     window.open(whatsappUrl, '_blank');
   };
 
-  const totalPrice = product.unitPrice * quantity;
   const isWholesale = quantity >= (product.minimumWholesaleQuantity || 10);
   const displayPrice = isWholesale ? product.wholesalePrice : product.unitPrice;
   const displayTotal = displayPrice * quantity;
@@ -334,40 +306,16 @@ const ProductDetail: React.FC = () => {
                     <TabsTrigger value="general">General</TabsTrigger>
                     <TabsTrigger value="technical">Técnico</TabsTrigger>
                     <TabsTrigger value="features">Características</TabsTrigger>
-                    <TabsTrigger value="usage">Uso</TabsTrigger>
                   </TabsList>
-                  
-                  <div className="p-6">
-                    <TabsContent value="general" className="space-y-4">
-                      <div className="prose max-w-none">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Descripción General</h3>
-                        <p className="text-gray-700 leading-relaxed">
-                          {product.description}
-                        </p>
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-medium text-gray-800 mb-2">Información Adicional</h4>
-                          <ul className="text-sm text-gray-600 space-y-1">
-                            <li>• Marca: {product.brand}</li>
-                            <li>• Categoría: {product.category}</li>
-                            <li>• Código: {product.code}</li>
-                            <li>• Stock disponible</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="technical">
-                      <TechnicalSpecs product={product} />
-                    </TabsContent>
-
-                    <TabsContent value="features">
-                      <ProductFeatures product={product} />
-                    </TabsContent>
-
-                    <TabsContent value="usage">
-                      <UsageInfo product={product} />
-                    </TabsContent>
-                  </div>
+                  <TabsContent value="general" className="mt-6 p-6">
+                    <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
+                  </TabsContent>
+                  <TabsContent value="technical" className="mt-6 p-6">
+                    <TechnicalSpecs product={product} />
+                  </TabsContent>
+                  <TabsContent value="features" className="mt-6 p-6">
+                    <ProductFeatures product={product} />
+                  </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>

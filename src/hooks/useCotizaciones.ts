@@ -40,7 +40,7 @@ export function useCotizaciones() {
     setLoading(false);
   };
 
-  const updateEstado = async (id: string, estado: string) => {
+  const updateEstado = async (id: string, estado: Database["public"]["Enums"]["estado_cotizacion"]) => {
     const { error } = await supabase
       .from('cotizaciones')
       .update({ estado })

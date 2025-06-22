@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from "recharts";
 import { Pedido } from "@/types/order";
 
 interface SalesHistoryChartProps {
@@ -24,33 +24,39 @@ const SalesHistoryChart: React.FC<SalesHistoryChartProps> = ({ pedidos }) => {
     pedidos.forEach((p) => {
       const d = new Date(p.created_at);
       const label = groupBy === "día"
-        ? d.toISOString().slice(0,10)
-        : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        ? d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+        : d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
       if (!map[label]) map[label] = { ingresos: 0, pedidos: 0 };
       map[label].ingresos += typeof p.total === "number" ? p.total : 0;
       map[label].pedidos += 1;
     });
-    return Object.entries(map)
-      .map(([period, v]) => ({ period, ...v }))
-      .sort((a, b) => a.period.localeCompare(b.period));
+    // Esta es una simulación de ordenamiento, idealmente se usaría una librería de fechas
+    return Object.entries(map).map(([period, v]) => ({ period, ...v }));
+
   }, [pedidos, groupBy]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>
-          Histórico de Ventas ({groupBy === "día" ? "días" : "meses"})
+          Visión General ({groupBy === "día" ? "Días" : "Meses"})
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={240}>
-          <LineChart data={timeSeries}>
-            <XAxis dataKey="period" />
-            <YAxis width={60} />
-            <Tooltip formatter={(v:number) => `S/. ${v.toFixed(2)}`} />
-            <Line type="monotone" dataKey="ingresos" stroke="#10b981" strokeWidth={2} name="Ingresos"/>
-            <Line type="monotone" dataKey="pedidos" stroke="#facc15" strokeWidth={2} name="Pedidos"/>
-          </LineChart>
+          <ComposedChart data={timeSeries} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis dataKey="period" tick={{ fill: '#6b7280' }} stroke="#d1d5db" />
+            <YAxis yAxisId="left" orientation="left" tick={{ fill: '#6b7280' }} stroke="#d1d5db" />
+            <YAxis yAxisId="right" orientation="right" tick={{ fill: '#6b7280' }} stroke="#d1d5db" />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}
+              labelStyle={{ color: '#1f2937' }}
+            />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+            <Bar yAxisId="left" dataKey="ingresos" barSize={20} fill="#3b82f6" name="Ingresos (S/.)" />
+            <Line yAxisId="right" type="monotone" dataKey="pedidos" stroke="#f97316" strokeWidth={2} name="N° Pedidos" />
+          </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

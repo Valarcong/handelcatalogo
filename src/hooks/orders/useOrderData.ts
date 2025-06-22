@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Pedido, ProductoPedido } from "@/types/order";
 import { useToast } from "@/hooks/use-toast";
+import { DateRange } from "react-day-picker";
 
 export function useOrderData() {
   const { toast } = useToast();
@@ -9,12 +10,24 @@ export function useOrderData() {
   const [loading, setLoading] = useState(false);
 
   // Cargar todos los pedidos (solo admins)
-  const fetchPedidos = async () => {
+  const fetchPedidos = async (dateRange?: DateRange) => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from("pedidos")
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (dateRange?.from) {
+      query = query.gte("created_at", dateRange.from.toISOString());
+    }
+    if (dateRange?.to) {
+      // Asegurarse de incluir todo el día de la fecha "hasta"
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999);
+      query = query.lte("created_at", toDate.toISOString());
+    }
+
+    const { data, error } = await query;
     setLoading(false);
 
     if (error) {

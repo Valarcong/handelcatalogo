@@ -1,8 +1,6 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
@@ -33,7 +31,7 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
     e.preventDefault();
     setSaving(true);
     try {
-      let motivoFinal = motivo === "Otro" ? motivoExtra : motivo;
+      const motivoFinal = motivo === "Otro" ? motivoExtra : motivo;
       await onConfirm(motivoFinal || "");
       onClose();
     } finally {

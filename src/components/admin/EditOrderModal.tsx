@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Pedido } from "@/types/order";
+import { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ProductSearchDialog from "./ProductSearchDialog";
@@ -17,14 +18,19 @@ interface EditOrderModalProps {
 }
 
 const EditOrderModal: React.FC<EditOrderModalProps> = ({ pedido, open, onClose, onSave }) => {
-  const { form, setForm, prods, setProds, total, allProducts } = useOrderForm(pedido);
+  const { form, setForm, prods, setProds, total } = useOrderForm(pedido);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAddProduct = (product) => {
+  const handleAddProduct = (product: Product) => {
     if (prods.find(pe => pe.product.id === product.id)) return;
-    setProds(prev => [...prev, { product, cantidad: 1, precio: product.unitPrice }]);
+    setProds(prev => [...prev, { 
+      product, 
+      cantidad: 1, 
+      precio_venta: product.unitPrice, 
+      precio_compra: 0 
+    }]);
     setShowAddDialog(false);
   };
 
@@ -42,9 +48,13 @@ const EditOrderModal: React.FC<EditOrderModalProps> = ({ pedido, open, onClose, 
     setSaving(true);
     try {
       const prodToStore = prods.map(prod => ({
+        id: prod.product.id,
         nombre: prod.product.name,
+        codigo: prod.product.code,
         cantidad: Number(prod.cantidad),
-        precio: Number(prod.precio),
+        precio_venta: Number(prod.precio_venta),
+        precio_compra: Number(prod.precio_compra),
+        subtotal: Number(prod.cantidad) * Number(prod.precio_venta),
       }));
       await onSave({
         ...form,

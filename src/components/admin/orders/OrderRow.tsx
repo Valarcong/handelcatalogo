@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ProductSummaryPopover from "@/components/admin/ProductSummaryPopover";
 import { XCircle, Pencil, Download, Trash2 } from "lucide-react";
-import { generatePedidoPDF } from "@/utils/generatePedidoPDF";
 
 const estadosColor = {
   pendiente: "bg-yellow-400 text-white",

@@ -1,9 +1,7 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Upload, Download } from "lucide-react";
 import { Product } from "@/types/product";
-import { useProducts } from "@/hooks/useProducts";
 import { useFileImport } from "@/hooks/useFileImport";
 import ImportCard from "./import/ImportCard";
 import ExportCard from "./import/ExportCard";

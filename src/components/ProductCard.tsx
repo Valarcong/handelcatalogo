@@ -15,6 +15,11 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onWhatsAppQuote }) => {
+  const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
   // defensivo
   if (!product || typeof product !== "object") {
     return null;
@@ -29,11 +34,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onWhatsAppQuote }) =
   const wholesalePrice = typeof product.wholesalePrice === "number" ? product.wholesalePrice : 0;
   const description = typeof product.description === "string" ? product.description : "";
   const image = typeof product.image === "string" && product.image.length > 0 ? product.image : "/placeholder.svg";
-
-  const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, parseInt(e.target.value) || 1);

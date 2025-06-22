@@ -21,14 +21,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
   const [newProduct, setNewProduct] = useState({
     name: '',
     code: '',
-    brand: 'omegaplast',
+    brand: '',
     description: '',
     image: '',
     category: '',
     unitPrice: 0,
     wholesalePrice: 0,
     minimumWholesaleQuantity: 10,
-    tags: ''
+    tags: '',
+    features: '',
+    technicalSpecs: [{ key: '', value: '' }]
   });
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -50,6 +52,13 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
     const productData = {
       ...validation.sanitizedData,
       tags: newProduct.tags ? newProduct.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      features: newProduct.features ? newProduct.features.split('\\n').map(f => f.trim()).filter(f => f.length > 0) : [],
+      technicalSpecs: newProduct.technicalSpecs.reduce((acc, spec) => {
+        if (spec.key && spec.value) {
+          acc[spec.key.trim()] = spec.value.trim();
+        }
+        return acc;
+      }, {} as Record<string, string>),
       minimumWholesaleQuantity: Number(newProduct.minimumWholesaleQuantity) || 10,
     };
 
@@ -59,14 +68,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
     setNewProduct({
       name: '',
       code: '',
-      brand: 'omegaplast',
+      brand: '',
       description: '',
       image: '',
       category: '',
       unitPrice: 0,
       wholesalePrice: 0,
       minimumWholesaleQuantity: 10,
-      tags: ''
+      tags: '',
+      features: '',
+      technicalSpecs: [{ key: '', value: '' }]
     });
     setErrors([]);
 
@@ -82,6 +93,24 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
     if (errors.length > 0) {
       setErrors([]);
     }
+  };
+
+  const handleTechSpecChange = (index: number, field: 'key' | 'value', value: string) => {
+    const newSpecs = [...newProduct.technicalSpecs];
+    newSpecs[index][field] = value;
+    setNewProduct(prev => ({ ...prev, technicalSpecs: newSpecs }));
+  };
+
+  const addTechSpec = () => {
+    setNewProduct(prev => ({
+      ...prev,
+      technicalSpecs: [...prev.technicalSpecs, { key: '', value: '' }]
+    }));
+  };
+  
+  const removeTechSpec = (index: number) => {
+    const newSpecs = newProduct.technicalSpecs.filter((_, i) => i !== index);
+    setNewProduct(prev => ({ ...prev, technicalSpecs: newSpecs }));
   };
 
   return (
@@ -129,19 +158,13 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
         
         <div>
           <Label htmlFor="brand">Marca</Label>
-          <Select
+          <Input
+            id="brand"
             value={newProduct.brand}
-            onValueChange={(value) => handleInputChange('brand', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona una marca" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="omegaplast">OmegaPlast</SelectItem>
-              <SelectItem value="handel">Handel</SelectItem>
-              <SelectItem value="otro">Otro</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={(e) => handleInputChange('brand', e.target.value)}
+            placeholder="Ej: Handel, Omegaplast, Genérico"
+            maxLength={100}
+          />
         </div>
 
         <div>
@@ -240,6 +263,46 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduc
             placeholder="hermético, alimentos, BPA-free"
             maxLength={500}
           />
+        </div>
+
+        <div>
+          <Label htmlFor="features">Características (una por línea)</Label>
+          <Textarea
+            id="features"
+            value={newProduct.features}
+            onChange={(e) => handleInputChange('features', e.target.value)}
+            placeholder="Ej: Resistente al agua\\nLibre de BPA\\nApto para microondas"
+            rows={4}
+          />
+        </div>
+
+        <div>
+          <Label>Especificaciones Técnicas</Label>
+          <div className="space-y-2">
+            {newProduct.technicalSpecs.map((spec, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  value={spec.key}
+                  onChange={(e) => handleTechSpecChange(index, 'key', e.target.value)}
+                  placeholder="Propiedad (Ej: Material)"
+                  className="w-1/3"
+                />
+                <Input
+                  value={spec.value}
+                  onChange={(e) => handleTechSpecChange(index, 'value', e.target.value)}
+                  placeholder="Valor (Ej: Plástico ABS)"
+                  className="w-2/3"
+                />
+                <Button variant="ghost" size="icon" onClick={() => removeTechSpec(index)} aria-label="Eliminar especificación">
+                  <Plus className="h-4 w-4 rotate-45 text-red-500" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" onClick={addTechSpec} className="mt-2">
+            <Plus className="h-4 w-4 mr-2" />
+            Añadir Especificación
+          </Button>
         </div>
 
         <Button 

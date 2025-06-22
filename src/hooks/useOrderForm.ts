@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Pedido, PedidoEstado } from "@/types/order";
+import { Pedido } from "@/types/order";
 import { Product } from "@/types/product";
 import { useProducts } from "@/hooks/useProducts";
 

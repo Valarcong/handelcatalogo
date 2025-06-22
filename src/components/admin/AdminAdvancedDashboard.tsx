@@ -1,5 +1,4 @@
 import React from "react";
-import { Product, Category } from "@/types/product";
 import { Pedido } from "@/types/order";
 import KPICards from "./dashboard/KPICards";
 import OrderFunnelChart from "./dashboard/OrderFunnelChart";
@@ -8,11 +7,9 @@ import SalesHistoryChart from "./dashboard/SalesHistoryChart";
 
 interface Props {
   pedidos: Pedido[];
-  products: Product[];
-  categories: Category[];
 }
 
-const AdminAdvancedDashboard: React.FC<Props> = ({ pedidos, products, categories }) => {
+const AdminAdvancedDashboard: React.FC<Props> = ({ pedidos }) => {
   return (
     <div className="space-y-6">
       <KPICards pedidos={pedidos} />
