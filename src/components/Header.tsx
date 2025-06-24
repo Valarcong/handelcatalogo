@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Search, LogOut, Menu, X, Home, Package, Users, Settings } from 'lucide-react';
+import { Search, LogOut, Menu, X, Home, Package, Users, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/hooks/AuthContext';
-import { useCart } from '@/hooks/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import GlobalSearchModal from './GlobalSearchModal';
@@ -12,7 +11,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const Header = () => {
   const location = useLocation();
   const { user, isAdmin, isVendedor, logout } = useAuthContext();
-  const { getTotalItems, setIsCartOpen } = useCart();
   const isMobile = useIsMobile();
 
   const [openSearch, setOpenSearch] = useState(false);
@@ -37,12 +35,6 @@ const Header = () => {
   const handleLogout = async () => {
     await logout();
   };
-
-  const handleCartClick = () => {
-    setIsCartOpen(true);
-  };
-
-  const totalItems = getTotalItems();
 
   // Navegación móvil
   const MobileNavigation = () => (
@@ -178,18 +170,6 @@ const Header = () => {
                 Buscar productos
               </Button>
 
-              <Button
-                variant="outline"
-                className="w-full justify-start text-gray-300 border-gray-600 hover:bg-gray-800"
-                onClick={() => {
-                  handleCartClick();
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Carrito ({totalItems})
-              </Button>
-
               {user && (
                 <Button
                   variant="outline"
@@ -254,69 +234,31 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            {/* Global Search */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setOpenSearch(true)}
               className="text-gray-200 hover:text-yellow-300 hover:bg-gray-800/60 border border-gray-700 shadow-md"
-              aria-label="Buscar productos global"
             >
-              <Search className="h-4 w-4 md:h-5 md:w-5" />
+              <Search className="h-5 w-5" />
             </Button>
+            
+            {isMobile ? <MobileNavigation /> : null}
 
-            {/* Carrito de compras */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCartClick}
-              className="text-gray-200 hover:text-yellow-300 hover:bg-gray-800/60 border border-gray-700 shadow-md relative"
-            >
-              <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
-              {totalItems > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 md:-top-2 md:-right-2 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center p-0 text-xs border-2 border-gray-900 bg-yellow-400 text-gray-900 font-bold"
-                >
-                  {totalItems}
-                </Badge>
-              )}
-            </Button>
-
-            {/* Menú móvil */}
-            <MobileNavigation />
-
-            {/* Usuario desktop */}
             {user && (
-              <div className="hidden md:flex items-center space-x-3">
-                <div className="flex flex-col items-end">
-                  <span className="text-gray-100 text-sm font-semibold">{user.nombre}</span>
-                  <div className="flex gap-1">
-                    {user.roles?.map((role: any) => (
-                      <Badge
-                        key={role.id}
-                        variant="secondary"
-                        className="text-xs bg-gray-800 border border-gray-600 text-gray-200"
-                      >
-                        {role.nombre}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-gray-200 hover:text-red-400 hover:bg-gray-800/60 border border-gray-700 shadow-md"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-red-400 hover:text-red-300 border-red-500/50 hover:bg-red-900/20 shadow-md"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             )}
           </div>
         </div>
       </div>
-      <GlobalSearchModal open={openSearch} onOpenChange={setOpenSearch} />
+      <GlobalSearchModal open={openSearch} setOpen={setOpenSearch} />
     </header>
   );
 };

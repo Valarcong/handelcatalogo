@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -61,7 +60,7 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
                   <th className="p-2">Nombre</th>
                   <th className="p-2">Marca</th>
                   <th className="p-2">Categoría</th>
-                  <th className="p-2">Precio (S/.)</th>
+                  <th className="p-2">Precio (USD)</th>
                   <th />
                 </tr>
               </thead>
@@ -72,7 +71,7 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
                     <td className="p-2">{prod.name}</td>
                     <td className="p-2">{prod.brand}</td>
                     <td className="p-2">{prod.category}</td>
-                    <td className="p-2">{prod.unitPrice.toLocaleString("es-PE", { minimumFractionDigits: 2 })}</td>
+                    <td className="p-2">USD {prod.unitPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
                     <td className="p-2">
                       <Button size="sm" variant="secondary" onClick={() => { onSelect(prod); onClose(); }}>
                         Seleccionar

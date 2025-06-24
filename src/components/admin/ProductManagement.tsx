@@ -5,6 +5,7 @@ import { Product, Category } from '@/types/product';
 import ProductFilters from './products/ProductFilters';
 import ProductList from './products/ProductList';
 import { TestTube } from 'lucide-react';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
 
 interface ProductManagementProps {
   products: Product[];
@@ -22,6 +23,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [testResult, setTestResult] = useState<string>("");
+  const { data: exchangeRate, loading: loadingTC, error: errorTC } = useExchangeRate();
 
   // Debug: Registrar props y estado para diagnóstico
   useEffect(() => {
@@ -77,6 +79,9 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
             Probar Categorías
           </Button>
         </CardTitle>
+        <div className="mt-1 text-xs text-gray-700 font-semibold">
+          {loadingTC ? 'Cargando T.C...' : errorTC ? 'Error al cargar T.C.' : exchangeRate ? `T.C. Actual: ${(exchangeRate.tc + 0.05).toFixed(3)}` : null}
+        </div>
         {testResult && (
           <p className="text-xs text-gray-600">{testResult}</p>
         )}

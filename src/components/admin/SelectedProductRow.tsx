@@ -8,9 +8,11 @@ interface SelectedProductRowProps {
   cantidad: number;
   precio_venta: number;
   precio_compra: number;
+  margen: number;
   onCantidadChange: (value: number) => void;
   onPrecioVentaChange: (value: number) => void;
   onPrecioCompraChange: (value: number) => void;
+  onMargenChange: (value: number) => void;
   onRemove: () => void;
 }
 
@@ -19,13 +21,15 @@ const SelectedProductRow: React.FC<SelectedProductRowProps> = ({
   cantidad,
   precio_venta,
   precio_compra,
+  margen,
   onCantidadChange,
   onPrecioVentaChange,
   onPrecioCompraChange,
+  onMargenChange,
   onRemove,
 }) => {
+  const safeMargen = (margen === undefined || margen === null) ? 10 : margen;
   const ganancia = (precio_venta - precio_compra) * cantidad;
-  const margen = precio_compra > 0 ? ((precio_venta - precio_compra) / precio_compra) * 100 : 0;
 
   return (
     <tr>
@@ -48,7 +52,7 @@ const SelectedProductRow: React.FC<SelectedProductRowProps> = ({
           className="w-24"
           value={precio_venta}
           onChange={e => onPrecioVentaChange(Number(e.target.value))}
-          placeholder="Precio venta"
+          placeholder="Precio venta (USD)"
         />
       </td>
       <td className="py-2 px-2" style={{ minWidth: 100 }}>
@@ -59,19 +63,30 @@ const SelectedProductRow: React.FC<SelectedProductRowProps> = ({
           className="w-24"
           value={precio_compra}
           onChange={e => onPrecioCompraChange(Number(e.target.value))}
-          placeholder="Precio compra"
+          placeholder="Precio compra (USD)"
+        />
+      </td>
+      <td className="py-2 px-2" style={{ minWidth: 80 }}>
+        <Input
+          type="number"
+          min={0}
+          step="0.01"
+          className="w-16"
+          value={safeMargen}
+          onChange={e => onMargenChange(Number(e.target.value))}
+          placeholder="Margen %"
         />
       </td>
       <td className="py-2 px-2 text-right w-24">
-        S/. {(precio_venta * cantidad).toLocaleString("es-PE", { minimumFractionDigits: 2 })}
+        USD {(precio_venta * cantidad).toLocaleString("en-US", { minimumFractionDigits: 2 })}
       </td>
       <td className="py-2 px-2 text-center">
         <div className="text-xs">
           <div className={`font-medium ${ganancia >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            S/. {ganancia.toFixed(2)}
+            USD {ganancia.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           </div>
           <div className="text-gray-500">
-            {margen.toFixed(1)}%
+            {safeMargen.toFixed(1)}%
           </div>
         </div>
       </td>

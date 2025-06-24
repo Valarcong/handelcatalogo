@@ -9,6 +9,8 @@ import { useOrderFilters } from "@/hooks/useOrderFilters";
 import { useClientes } from '@/hooks/useClientes';
 import OrderManagementHeader from "./orders/OrderManagementHeader";
 import OrderManagementModals, { DeleteOrderModal } from "./orders/OrderManagementModals";
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { toast } from 'sonner';
 
 const OrderManagement: React.FC = () => {
   const { pedidos, fetchPedidos, updatePedidoEstado, updatePedido, cancelPedido, deletePedido, loading, createPedido } = useOrders();
@@ -20,6 +22,7 @@ const OrderManagement: React.FC = () => {
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; pedido: Pedido | null }>({ open: false, pedido: null });
   const { user } = useAuth();
   const { clientes, fetchClientes } = useClientes();
+  const { data: exchangeRate, loading: loadingTC, error: errorTC } = useExchangeRate();
 
   useEffect(() => {
     fetchPedidos();
@@ -93,7 +96,13 @@ const OrderManagement: React.FC = () => {
           avanzarEstado={avanzarEstado}
           onCancelar={p => setCancelModal({ open: true, pedido: p })}
           onEdit={p => setModal({ open: true, pedido: p })}
-          onPDF={p => generatePedidoPDF(p)}
+          onPDF={p => {
+            if (!exchangeRate || typeof exchangeRate.tc !== 'number') {
+              toast.error('No se pudo obtener el tipo de cambio. Intenta de nuevo más tarde.');
+              return;
+            }
+            generatePedidoPDF(p, exchangeRate.tc);
+          }}
           onDelete={p => setDeleteModal({ open: true, pedido: p })}
         />
       )}

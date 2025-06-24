@@ -61,7 +61,10 @@ const NewQuotationModal: React.FC<NewQuotationModalProps> = ({ open, onClose, on
 
   const handleAddProduct = (product) => {
     if (prods.find(pe => pe.product.id === product.id)) return;
-    setProds(prev => [...prev, { product, cantidad: 1, precio: product.unitPrice }]);
+    const precio_compra = product.unitPrice || 0;
+    const margen = 10;
+    const precio_venta = Number((precio_compra * (1 + margen / 100)).toFixed(2));
+    setProds(prev => [...prev, { product, cantidad: 1, precio_compra, margen, precio_venta }]);
     setShowAddDialog(false);
   };
 
@@ -100,7 +103,9 @@ const NewQuotationModal: React.FC<NewQuotationModalProps> = ({ open, onClose, on
         producto_id: prod.product.id,
         nombre_producto: prod.product.name,
         cantidad: Number(prod.cantidad),
-        precio_unitario: Number(prod.precio),
+        precio_unitario: Number(prod.precio_venta ?? 0),
+        precio_compra: Number(prod.precio_compra ?? 0),
+        margen: Number(prod.margen ?? 0),
         // Puedes agregar más campos si tu tabla los tiene
       }));
       const { error: err2 } = await supabase

@@ -17,7 +17,7 @@ interface AdminSectionRendererProps {
   onAddProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (id: string, name: string) => Promise<void>;
-  onUpdateProduct: () => Promise<void>;
+  onUpdateProduct: (product: Product) => Promise<void>;
   onRefresh: () => void;
   editingProduct: Product | null;
   setEditingProduct: (product: Product | null) => void;

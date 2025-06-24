@@ -11,7 +11,7 @@ type CotizacionCompleta = CotizacionBase & {
   ruc?: string;
 };
 
-export async function generateCotizacionPDF(cotizacion: CotizacionCompleta, productos: any[], cliente: any) {
+export async function generateCotizacionPDF(cotizacion: CotizacionCompleta, productos: any[], cliente: any, tc: number) {
   const doc = new jsPDF();
 
   // Logo
@@ -58,20 +58,23 @@ export async function generateCotizacionPDF(cotizacion: CotizacionCompleta, prod
   y += 6;
   doc.text('En atención a su amable solicitud nos es grato ofrecerle lo siguiente:', 14, y);
 
-  // Tabla de productos
+  // Tabla de productos (convertidos a soles)
+  const tcFinal = tc + 0.05;
+  console.log('[PDF Cotización] Productos:', productos);
+  console.log('[PDF Cotización] TC usado:', tc, 'TC final:', tcFinal);
   y += 4;
   autoTable(doc, {
     startY: y,
     head: [[
-      '#', 'Código producto', 'Nombre Producto', 'Cantidad', 'Precio Unitario', 'Total SIN IGV'
+      '#', 'Código producto', 'Nombre Producto', 'Cantidad', 'Precio Unitario (S/.)', 'Total SIN IGV (S/.)'
     ]],
     body: productos.map((prod, idx) => [
       idx + 1,
       prod.sku || '',
       prod.nombre_producto,
-      prod.cantidad,
-      prod.precio_unitario.toFixed(2),
-      (prod.precio_unitario * prod.cantidad).toFixed(2)
+      Number(prod.cantidad ?? 0),
+      (Number(prod.precio_unitario ?? prod.precio_venta ?? 0) * tcFinal).toLocaleString('es-PE', { minimumFractionDigits: 2 }),
+      (Number(prod.precio_unitario ?? prod.precio_venta ?? 0) * Number(prod.cantidad ?? 0) * tcFinal).toLocaleString('es-PE', { minimumFractionDigits: 2 })
     ]),
     theme: 'grid',
     headStyles: { fillColor: [41, 128, 185] },
@@ -81,14 +84,14 @@ export async function generateCotizacionPDF(cotizacion: CotizacionCompleta, prod
       1: { cellWidth: 30 },
       2: { cellWidth: 60 },
       3: { cellWidth: 18 },
-      4: { cellWidth: 25 },
-      5: { cellWidth: 30 },
+      4: { cellWidth: 30 },
+      5: { cellWidth: 35 },
     },
   });
   y = (doc as any).lastAutoTable.finalY + 6;
 
-  // Condiciones y totales
-  const subtotal = productos.reduce((sum, p) => sum + p.precio_unitario * p.cantidad, 0);
+  // Condiciones y totales (convertidos a soles)
+  const subtotal = productos.reduce((sum, p) => sum + Number(p.precio_unitario ?? p.precio_venta ?? 0) * Number(p.cantidad ?? 0) * tcFinal, 0);
   const igv = subtotal * 0.18;
   const total = subtotal + igv;
 
@@ -106,11 +109,11 @@ export async function generateCotizacionPDF(cotizacion: CotizacionCompleta, prod
 
   // Lado derecho totales
   let yTot = (doc as any).lastAutoTable.finalY + 6;
-  doc.text(`Subtotal: S/ ${subtotal.toFixed(2)}`, 150, yTot);
+  doc.text(`Subtotal: S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, 150, yTot);
   yTot += 6;
-  doc.text(`IGV: S/ ${igv.toFixed(2)}`, 150, yTot);
+  doc.text(`IGV: S/ ${igv.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, 150, yTot);
   yTot += 6;
-  doc.text(`Total: S/ ${total.toFixed(2)}`, 150, yTot);
+  doc.text(`Total: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, 150, yTot);
 
   // Notas finales
   y = Math.max(y, yTot) + 12;

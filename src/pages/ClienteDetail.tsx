@@ -5,6 +5,8 @@ import { useOrders } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { generatePedidoPDF } from '@/utils/generatePedidoPDF';
 import { Dialog } from '@/components/ui/dialog';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { toast } from 'sonner';
 
 const ClienteDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +14,7 @@ const ClienteDetail: React.FC = () => {
   const { pedidos, fetchPedidos, loading } = useOrders();
   const [cliente, setCliente] = useState<any | null>(null);
   const [detalleModal, setDetalleModal] = useState<any | null>(null);
+  const { data: exchangeRate, loading: loadingTC, error: errorTC } = useExchangeRate();
 
   useEffect(() => {
     fetchClientes();
@@ -111,7 +114,13 @@ const ClienteDetail: React.FC = () => {
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setDetalleModal(null)}>Cerrar</Button>
-                <Button variant="secondary" onClick={() => generatePedidoPDF(detalleModal)}>Descargar PDF</Button>
+                <Button variant="secondary" onClick={() => {
+                  if (!exchangeRate || typeof exchangeRate.tc !== 'number') {
+                    toast.error('No se pudo obtener el tipo de cambio. Intenta de nuevo más tarde.');
+                    return;
+                  }
+                  generatePedidoPDF(detalleModal, exchangeRate.tc);
+                }}>Descargar PDF</Button>
               </div>
             </div>
           </div>

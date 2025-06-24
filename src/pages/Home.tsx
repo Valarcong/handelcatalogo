@@ -21,8 +21,8 @@
  *
  * Dejar estilos con Tailwind, evitar usar componentes muy pesados si es posible.
  */
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
 import ProductCard from '@/components/ProductCard';
 import WhatsAppButton from '@/components/WhatsAppButton';
@@ -30,15 +30,31 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Package, Users, Award, Shield, Truck, Clock } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Footer from '@/components/Footer';
 
 const Home = () => {
   const { products, categories, loading } = useProducts();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchCategory, setSearchCategory] = useState('');
 
   const handleWhatsAppQuote = (product: Product, quantity: number) => {
     const totalPrice = product.unitPrice * quantity;
-    const message = `¡Hola! Me interesa este producto:\n\n🧾 *${product.name}*\n📋 Código: ${product.code}\n📦 Cantidad: ${quantity}\n💰 Precio Unitario: S/. ${product.unitPrice.toFixed(2)}\n💵 Total: *S/. ${totalPrice.toFixed(2)}*\n\n¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?\n\n¡Gracias!`;
+    const message = `¡Hola! Me interesa este producto:\n\n🧾 *${product.name}*\n📋 Código: ${product.code}\n📦 Cantidad: ${quantity}\n💰 Precio Unitario: USD ${product.unitPrice.toFixed(2)}\n💵 Total: *USD ${totalPrice.toFixed(2)}*\n\n¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?\n\n¡Gracias!`;
     const whatsappUrl = `https://wa.me/51970337910?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchTerm.trim()) {
+      params.set('q', searchTerm.trim());
+    }
+    if (searchCategory) {
+      params.set('categoria', searchCategory);
+    }
+    navigate(`/productos?${params.toString()}`);
   };
 
   const featuredProducts = products.slice(0, 8);
@@ -57,31 +73,37 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
       {/* Hero Section: fondo degradado oscuro, logo, título y barra de búsqueda */}
-      <section className="relative w-full h-[45vh] min-h-[320px] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800 shadow-xl">
+      <section className="relative w-full h-[60vh] min-h-[400px] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800 shadow-xl px-4">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-gray-900/80 to-green-900/70" />
         <div className="relative z-10 w-full flex flex-col items-center justify-center h-full">
-          <img src="/imagenes/logo/handel_logo_blanco_reducido.png" alt="Handel Logo" className="h-24 md:h-32 mb-4 drop-shadow-2xl" />
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-6 text-center drop-shadow-xl tracking-widest uppercase">
+          <img src="/imagenes/logo/handel_logo_blanco_reducido.png" alt="Handel Logo" className="h-20 md:h-28 mb-4 drop-shadow-2xl" />
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white mb-6 text-center drop-shadow-xl tracking-widest uppercase">
             Encuentra el producto ideal para tu industria
           </h1>
-          <form className="w-full max-w-2xl flex flex-col md:flex-row gap-3 items-center justify-center bg-gray-900/80 rounded-xl shadow-2xl p-4 border-2 border-gray-700 backdrop-blur">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="w-full max-w-2xl flex flex-col md:flex-row gap-3 items-center justify-center bg-gray-900/80 rounded-xl shadow-2xl p-4 border-2 border-gray-700 backdrop-blur"
+          >
             <input
               type="text"
-              placeholder="Buscar productos, marcas, códigos..."
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold"
+              placeholder="Buscar productos, marcas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:flex-[2_2_0%] px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base md:text-lg font-semibold"
             />
             <select
-              className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px] text-lg font-semibold"
-              defaultValue=""
+              value={searchCategory}
+              onChange={(e) => setSearchCategory(e.target.value)}
+              className="w-full md:w-auto md:min-w-[120px] md:max-w-[160px] px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base md:text-lg font-semibold"
             >
-              <option value="">Todas las categorías</option>
+              <option value="">Categorías</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
               ))}
             </select>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg bg-blue-700 text-white font-extrabold hover:bg-blue-800 transition-colors shadow-lg text-lg border-2 border-blue-900"
+              className="w-full md:w-auto px-6 py-2 rounded-lg bg-blue-700 text-white font-extrabold hover:bg-blue-800 transition-colors shadow-lg text-base md:text-lg border-2 border-blue-900"
             >
               Buscar
             </button>
@@ -90,20 +112,20 @@ const Home = () => {
       </section>
 
       {/* Ventajas tipo badges/cards industriales */}
-      <section className="w-full flex flex-wrap justify-center gap-4 py-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800">
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+      <section className="w-full flex flex-col md:flex-row flex-wrap justify-center items-center gap-4 py-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-b border-gray-800 px-4">
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md w-full md:w-auto justify-center">
           <Award className="h-5 w-5 text-blue-400" />
           <span className="text-sm font-bold text-blue-100 uppercase tracking-wider">+40 años de experiencia</span>
         </div>
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md w-full md:w-auto justify-center">
           <Package className="h-5 w-5 text-green-400" />
           <span className="text-sm font-bold text-green-100 uppercase tracking-wider">Calidad garantizada</span>
         </div>
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md w-full md:w-auto justify-center">
           <Users className="h-5 w-5 text-orange-400" />
           <span className="text-sm font-bold text-orange-100 uppercase tracking-wider">Atención personalizada</span>
         </div>
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md">
+        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 shadow-md w-full md:w-auto justify-center">
           <ArrowRight className="h-5 w-5 text-purple-400" />
           <span className="text-sm font-bold text-purple-100 uppercase tracking-wider">Entrega rápida</span>
         </div>
@@ -122,7 +144,7 @@ const Home = () => {
                 .slice()
                 .sort((a, b) => b.count - a.count)
                 .map((category) => (
-                  <CarouselItem key={category.id} className="basis-3/4 sm:basis-1/3 md:basis-1/4 px-2">
+                  <CarouselItem key={category.id} className="basis-4/5 sm:basis-1/3 md:basis-1/4 px-2">
                     <Link to={`/productos?categoria=${encodeURIComponent(category.name)}`}
                       className="block group rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow relative h-48 md:h-56 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 border-2 border-gray-700">
                       {category.image ? (
@@ -139,8 +161,8 @@ const Home = () => {
                   </CarouselItem>
                 ))}
             </CarouselContent>
-            <CarouselPrevious className="left-0 top-1/2 -translate-y-1/2" />
-            <CarouselNext className="right-0 top-1/2 -translate-y-1/2" />
+            <CarouselPrevious className="hidden sm:flex left-0 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="hidden sm:flex right-0 top-1/2 -translate-y-1/2" />
           </Carousel>
         </div>
       </section>
@@ -158,39 +180,37 @@ const Home = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
                 <div key={product.id} className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow p-6 flex flex-col items-center relative group border-2 border-gray-700">
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex gap-2 z-10">
-                    {product.tags?.includes('Nuevo') && (
-                      <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Nuevo</span>
-                    )}
-                    {product.tags?.includes('Oferta') && (
-                      <span className="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">Oferta</span>
-                    )}
+                  {/* Marca arriba de la imagen, fuera del área de la imagen */}
+                  <div className="w-full flex justify-start mb-2">
+                    <span className="bg-white text-blue-800 text-xs font-bold px-3 py-1 rounded-full shadow border border-blue-200 z-20" style={{minWidth:'60px', textAlign:'center', letterSpacing:'0.08em'}}>{product.brand?.toUpperCase()}</span>
                   </div>
                   {/* Imagen (enlace) */}
                   <Link to={`/producto/${product.id}`} className="block w-full">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-105 transition-transform duration-300 drop-shadow-xl bg-gray-900 rounded-lg p-2 border border-gray-700"
+                      className="w-full h-auto aspect-square object-contain mb-4 mx-auto group-hover:scale-105 transition-transform duration-300 drop-shadow-xl bg-gray-900 rounded-lg p-2 border border-gray-700"
                     />
                   </Link>
-                  {/* Nombre (enlace) */}
                   <Link to={`/producto/${product.id}`} className="block w-full">
-                    <h3 className="font-extrabold text-base text-gray-100 mb-1 text-center line-clamp-2 hover:underline uppercase tracking-wider drop-shadow">{product.name}</h3>
+                    <h3 className="font-extrabold text-sm text-gray-100 mb-1 text-left line-clamp-2 hover:underline uppercase tracking-wider drop-shadow">{product.name}</h3>
                   </Link>
                   {/* Precio */}
-                  <div className="text-yellow-300 font-extrabold text-base mb-2 drop-shadow">S/. {product.unitPrice.toFixed(2)}</div>
+                  <div className="text-yellow-300 font-extrabold text-base mb-2 drop-shadow text-left w-full">USD {product.unitPrice.toFixed(2)}</div>
+                  {/* Etiquetas */}
+                  {Array.isArray(product.tags) && product.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3 w-full justify-start">
+                      {product.tags.map((tag, idx) => (
+                        <span key={idx} className="bg-blue-700 text-white text-xs font-bold px-2 py-1 rounded tracking-widest" style={{letterSpacing: '0.08em'}}>{tag.toUpperCase()}</span>
+                      ))}
+                    </div>
+                  )}
                   {/* Botón WhatsApp */}
                   <button
                     onClick={() => handleWhatsAppQuote(product, 1)}
-                    className="mt-auto w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg tracking-wider text-lg border-2 border-green-700"
+                    className="mt-auto w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg tracking-wider text-xs md:text-sm border-2 border-green-700"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.007 4.003A9.967 9.967 0 0012 2C6.477 2 2 6.477 2 12c0 1.657.404 3.22 1.116 4.59L2 22l5.527-1.09A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10 0-2.652-1.032-5.073-2.993-6.997z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.243 15.657a4 4 0 01-5.657-5.657" />
-                    </svg>
-                    Cotizar por WhatsApp
+                    Cotizar en WhatsApp
                   </button>
                 </div>
               ))}
@@ -207,6 +227,7 @@ const Home = () => {
       </section>
 
       <WhatsAppButton />
+      <Footer />
     </div>
   );
 };

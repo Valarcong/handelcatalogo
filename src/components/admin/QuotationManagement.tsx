@@ -9,6 +9,9 @@ import EditQuotationModal from './EditQuotationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { DateRangeFilter } from '@/components/admin/analytics/DateRangeFilter';
+import { Input } from '@/components/ui/input';
 
 const ESTADOS = [
   { value: 'pendiente', label: 'Pendiente' },
@@ -26,6 +29,12 @@ const QuotationManagement: React.FC = () => {
   const [newModal, setNewModal] = useState(false);
   const [editModal, setEditModal] = useState<{ open: boolean; cotizacion: Cotizacion | null }>({ open: false, cotizacion: null });
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; cotizacion: Cotizacion | null }>({ open: false, cotizacion: null });
+  const { data: exchangeRate, loading: loadingTC, error: errorTC } = useExchangeRate();
+  const [filters, setFilters] = useState({
+    estado: 'all',
+    search: '',
+    dateRange: undefined,
+  });
 
   useEffect(() => {
     fetchClientes();
@@ -42,9 +51,38 @@ const QuotationManagement: React.FC = () => {
     });
   }, [cotizaciones, clientes]);
 
+  const filteredCotizaciones = useMemo(() => {
+    return cotizacionesConCliente.filter(cot => {
+      // Estado
+      if (filters.estado !== 'all' && cot.estado !== filters.estado) return false;
+      // Rango de fechas
+      if (filters.dateRange?.from) {
+        if (new Date(cot.creado_en).getTime() < new Date(filters.dateRange.from).setHours(0,0,0,0)) return false;
+      }
+      if (filters.dateRange?.to) {
+        if (new Date(cot.creado_en).getTime() > new Date(filters.dateRange.to).setHours(23,59,59,999)) return false;
+      }
+      // Búsqueda
+      if (filters.search) {
+        const txt = filters.search.toLowerCase();
+        if (!(
+          (cot.cliente?.razon_social || cot.cliente?.nombre || '').toLowerCase().includes(txt) ||
+          (cot.cliente?.email || '').toLowerCase().includes(txt) ||
+          (cot.cliente?.telefono || '').toLowerCase().includes(txt) ||
+          (cot.id || '').toLowerCase().includes(txt)
+        )) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [cotizacionesConCliente, filters]);
+
+  const resetFilters = () => setFilters({ estado: 'all', search: '', dateRange: undefined });
+
   const handleEstadoChange = async (id: string, estado: string) => {
     setEstadoEdit(e => ({ ...e, [id]: estado }));
-    await updateEstado(id, estado);
+    await updateEstado(id, estado as any);
     setEstadoEdit(e => ({ ...e, [id]: null }));
   };
 
@@ -63,27 +101,37 @@ const QuotationManagement: React.FC = () => {
     }
     const productosConSku = productosCotizados.map(prod => {
       const base = productosBase.find(b => b.id === prod.producto_id);
+      const p = prod as import('@/hooks/useCotizaciones').CotizacionProducto;
       return {
-        ...prod,
+        ...p,
         sku: base ? base.sku : '',
+        precio_compra: p.precio_compra ?? 0,
+        margen: p.margen ?? 0,
       };
     });
     return { cliente, productosConSku };
   };
 
   const handlePDF = async (cotizacion: Cotizacion) => {
+    if (!exchangeRate || typeof exchangeRate.tc !== 'number') {
+      toast.error('No se pudo obtener el tipo de cambio. Intenta de nuevo más tarde.');
+      return;
+    }
     const { cliente, productosConSku } = await fetchClienteYProductos(cotizacion);
-    await generateCotizacionPDF(cotizacion, productosConSku, cliente);
+    await generateCotizacionPDF(cotizacion, productosConSku, cliente, exchangeRate.tc);
   };
 
   const handleGenerarPedido = async (cotizacion: Cotizacion) => {
     const { cliente, productosConSku } = await fetchClienteYProductos(cotizacion);
     const productosPedido = productosConSku.map(prod => ({
-      producto_id: prod.producto_id,
+      id: prod.producto_id,
       nombre: prod.nombre_producto,
+      codigo: prod.sku || '',
       cantidad: prod.cantidad,
-      precio: prod.precio_unitario,
-      sku: prod.sku
+      precio_venta: prod.precio_unitario,
+      precio_compra: prod.precio_compra ?? 0,
+      margen: prod.margen ?? 0,
+      subtotal: prod.cantidad * prod.precio_unitario,
     }));
 
     const { error } = await supabase.from('pedidos').insert({
@@ -92,7 +140,7 @@ const QuotationManagement: React.FC = () => {
       cliente_telefono: cliente?.telefono || '',
       cliente_email: cliente?.email || '',
       productos: productosPedido,
-      total: productosPedido.reduce((sum, p) => sum + (p.precio * p.cantidad), 0),
+      total: productosPedido.reduce((sum, p) => sum + (p.precio_venta * p.cantidad), 0),
       observaciones: cotizacion.observaciones,
       cotizacion_id: cotizacion.id,
       estado: 'pendiente',
@@ -120,9 +168,45 @@ const QuotationManagement: React.FC = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Cotizaciones</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+        <div>
+          <h2 className="text-xl font-semibold">Cotizaciones</h2>
+          <div className="mt-1 text-xs text-gray-700 font-semibold">
+            {loadingTC ? 'Cargando T.C...' : errorTC ? 'Error al cargar T.C.' : exchangeRate ? `T.C. Actual: ${(exchangeRate.tc + 0.05).toFixed(3)}` : null}
+          </div>
+        </div>
         <Button onClick={() => setNewModal(true)} variant="default">+ Nueva Cotización</Button>
+      </div>
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-2 items-center mb-4 bg-muted px-4 py-3 rounded-md">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Estado:</span>
+          <select
+            value={filters.estado}
+            onChange={e => setFilters(f => ({ ...f, estado: e.target.value }))}
+            className="w-40 border rounded px-2 py-1"
+          >
+            <option value="all">Todos</option>
+            {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Buscar:</span>
+          <Input
+            placeholder="Cliente, email, teléfono o ID"
+            value={filters.search}
+            onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
+            className="w-48"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Rango de fechas:</span>
+          <DateRangeFilter
+            range={filters.dateRange}
+            setRange={range => setFilters(f => ({ ...f, dateRange: range }))}
+          />
+        </div>
+        <Button type="button" size="sm" variant="ghost" onClick={resetFilters}>Limpiar</Button>
       </div>
       {loading ? <div>Cargando cotizaciones...</div> : (
         <table className="min-w-full bg-white border rounded-lg overflow-x-auto text-xs sm:text-sm">
@@ -135,9 +219,9 @@ const QuotationManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {cotizacionesConCliente.length === 0 ? (
+            {filteredCotizaciones.length === 0 ? (
               <tr><td colSpan={4} className="text-center text-gray-400 py-4">Sin cotizaciones</td></tr>
-            ) : cotizacionesConCliente.map(cot => {
+            ) : filteredCotizaciones.map(cot => {
               const isPedidoGenerado = cot.estado === 'pedido_generado';
               return (
               <tr key={cot.id}>

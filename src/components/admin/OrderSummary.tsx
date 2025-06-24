@@ -1,4 +1,3 @@
-
 import React from "react";
 import { PedidoEstado, PEDIDO_ESTADOS } from "@/types/order";
 
@@ -26,7 +25,7 @@ const OrderSummary: React.FC<Props> = ({ estado, setEstado, total }) => (
         <div className="font-bold text-lg text-brand-navy">
           Total:&nbsp;
           <span>
-            S/.{total.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
+            USD {total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           </span>
         </div>
       </div>

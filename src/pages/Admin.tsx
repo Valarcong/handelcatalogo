@@ -57,19 +57,10 @@ const Admin = () => {
     }
   };
 
-  const handleUpdateProduct = async () => {
-    if (!editingProduct) return;
+  const handleUpdateProduct = async (productToUpdate: Product) => {
+    if (!productToUpdate) return;
     try {
-      const updatedData = {
-        ...editingProduct,
-        tags: Array.isArray(editingProduct.tags) 
-          ? editingProduct.tags
-          : (editingProduct.tags as string)
-              .split(',')
-              .map(tag => tag.trim())
-              .filter(tag => tag.length > 0)
-      };
-      await updateProduct(editingProduct.id, updatedData);
+      await updateProduct(productToUpdate.id, productToUpdate);
       setEditingProduct(null);
       toast({
         title: "Producto actualizado",

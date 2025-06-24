@@ -17,7 +17,7 @@ interface EditQuotationModalProps {
 const EditQuotationModal: React.FC<EditQuotationModalProps> = ({ open, onClose, cotizacion, onUpdated }) => {
   const { clientes } = useClienteSelector();
   const [form, setForm] = useState<{ observaciones: string }>({ observaciones: "" });
-  const [prods, setProds] = useState<CotizacionProducto[]>([]);
+  const [prods, setProds] = useState<any[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,10 +26,16 @@ const EditQuotationModal: React.FC<EditQuotationModalProps> = ({ open, onClose, 
     if (open && cotizacion) {
       setForm({ observaciones: cotizacion.observaciones || "" });
       supabase.from('cotizacion_productos').select('*').eq('cotizacion_id', cotizacion.id).then(({ data }) => {
-        setProds((data || []) as CotizacionProducto[]);
+        setProds((data || []).map(prod => {
+          const p: any = { ...prod };
+          p.precio_compra = p.precio_compra ?? 0;
+          p.margen = p.margen ?? (p.precio_compra > 0 ? ((p.precio_unitario - p.precio_compra) / p.precio_compra) * 100 : 0);
+          p.precio_unitario = p.precio_unitario ?? 0;
+          return p;
+        }));
       });
     } else {
-      setProds([]);
+      setProds([] as any[]);
       setForm({ observaciones: "" });
     }
     setError(null);
@@ -60,8 +66,24 @@ const EditQuotationModal: React.FC<EditQuotationModalProps> = ({ open, onClose, 
     setProds(p => p.map((prod, i) => i === idx ? { ...prod, cantidad: qty, precio_total: prod.precio_unitario * qty } : prod));
   };
 
-  const handlePriceChange = (idx: number, price: number) => {
-    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio_unitario: price, precio_total: price * prod.cantidad } : prod));
+  const handlePriceCompraChange = (idx: number, price: number) => {
+    setProds(p => p.map((prod, i) =>
+      i === idx
+        ? { ...prod, precio_compra: price, precio_unitario: Number((price * (1 + (prod as any).margen / 100)).toFixed(2)) }
+        : prod
+    ));
+  };
+
+  const handleMargenChange = (idx: number, margen: number) => {
+    setProds(p => p.map((prod, i) =>
+      i === idx
+        ? { ...prod, margen, precio_unitario: Number(((prod as any).precio_compra ?? 0) * (1 + margen / 100)).toFixed(2) }
+        : prod
+    ));
+  };
+
+  const handlePriceVentaChange = (idx: number, price: number) => {
+    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio_unitario: price } : prod));
   };
 
   const handleRemove = (idx: number) => {
@@ -93,6 +115,8 @@ const EditQuotationModal: React.FC<EditQuotationModalProps> = ({ open, onClose, 
         cantidad: prod.cantidad,
         precio_unitario: prod.precio_unitario,
         precio_total: prod.precio_total,
+        precio_compra: prod.precio_compra ?? 0,
+        margen: prod.margen ?? 0,
         observaciones: prod.observaciones || ""
       }));
       await supabase.from('cotizacion_productos').insert(productosToInsert);
@@ -148,7 +172,9 @@ const EditQuotationModal: React.FC<EditQuotationModalProps> = ({ open, onClose, 
               <tr>
                 <th className="px-2 py-1 text-left font-semibold">Producto</th>
                 <th className="px-2 py-1 font-semibold">Cantidad</th>
-                <th className="px-2 py-1 font-semibold">Precio unit.</th>
+                <th className="px-2 py-1 font-semibold">Precio compra</th>
+                <th className="px-2 py-1 font-semibold">Margen (%)</th>
+                <th className="px-2 py-1 font-semibold">Precio venta</th>
                 <th className="px-2 py-1 font-semibold">Subtotal</th>
                 <th className="px-2 py-1 font-semibold"></th>
               </tr>
@@ -171,13 +197,33 @@ const EditQuotationModal: React.FC<EditQuotationModalProps> = ({ open, onClose, 
                       type="number"
                       min={0}
                       step={0.01}
+                      value={(prod as any).precio_compra ?? 0}
+                      onChange={e => handlePriceCompraChange(idx, Number(e.target.value))}
+                      className="w-24"
+                    />
+                  </td>
+                  <td className="px-2 py-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={(prod as any).margen ?? 10}
+                      onChange={e => handleMargenChange(idx, Number(e.target.value))}
+                      className="w-16"
+                    />
+                  </td>
+                  <td className="px-2 py-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
                       value={prod.precio_unitario}
-                      onChange={e => handlePriceChange(idx, Number(e.target.value))}
+                      onChange={e => handlePriceVentaChange(idx, Number(e.target.value))}
                       className="w-24"
                     />
                   </td>
                   <td className="px-2 py-1 text-right">
-                    S/. {(prod.precio_unitario * prod.cantidad).toLocaleString("es-PE", { minimumFractionDigits: 2 })}
+                    USD {(prod.precio_unitario * prod.cantidad).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </td>
                   <td className="px-2 py-1">
                     <Button type="button" variant="destructive" size="icon" onClick={() => handleRemove(idx)}>

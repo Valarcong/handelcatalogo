@@ -28,7 +28,7 @@ const QuotationDetailModal: React.FC<Props> = ({ open, onClose, cotizacion, getD
       <DialogContent>
         <DialogTitle>Detalle de Cotización</DialogTitle>
         <div className="mb-2">
-          <strong>Cliente:</strong> {cotizacion.razon_social || cotizacion.nombre_cliente}<br/>
+          <strong>Cliente:</strong> {cotizacion.razon_social ?? cotizacion.nombre_cliente ?? ''}<br/>
           <strong>Estado:</strong> {cotizacion.estado}<br/>
           <strong>Fecha:</strong> {new Date(cotizacion.creado_en).toLocaleDateString()}
         </div>

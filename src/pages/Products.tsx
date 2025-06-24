@@ -1,13 +1,15 @@
 // Refactorizado: toda la lógica está dividida en componentes independientes.
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types/product";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Package } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 const Products = () => {
   const { products: rawProducts, categories, loading } = useProducts();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Fallback defensivo básico
   const products = useMemo(
@@ -15,10 +17,20 @@ const Products = () => {
     [rawProducts]
   );
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('categoria') || "all");
   const [sortBy, setSortBy] = useState<string>("name");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
+
+  // Sincronizar estado con URL
+  useEffect(() => {
+    const newParams = new URLSearchParams();
+    if (searchTerm) newParams.set('q', searchTerm);
+    if (selectedCategory && selectedCategory !== 'all') {
+      newParams.set('categoria', selectedCategory);
+    }
+    setSearchParams(newParams);
+  }, [searchTerm, selectedCategory, setSearchParams]);
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
@@ -82,8 +94,8 @@ const Products = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 pb-10">
-      <section className="container mx-auto px-4 pt-10">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
+      <section className="flex-1 container mx-auto px-4 pt-10 pb-10">
         <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-6 text-center drop-shadow-xl tracking-widest uppercase">
           Catálogo de Productos
         </h1>
@@ -99,9 +111,9 @@ const Products = () => {
           <select
             className="px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px] text-lg font-semibold"
             value={selectedCategory}
-            onChange={e => setSelectedCategory(e.target.value)}
+            onChange={e => setSelectedCategory(e.target.value || 'all')}
           >
-            <option value="">Todas las categorías</option>
+            <option value="all">Todas las categorías</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
@@ -117,15 +129,8 @@ const Products = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {filteredAndSortedProducts.map((product) => (
               <div key={product.id} className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow p-6 flex flex-col items-center relative group border-2 border-gray-700">
-                {/* Badges */}
-                <div className="absolute top-3 left-3 flex gap-2 z-10">
-                  {product.tags?.includes('Nuevo') && (
-                    <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Nuevo</span>
-                  )}
-                  {product.tags?.includes('Oferta') && (
-                    <span className="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">Oferta</span>
-                  )}
-                </div>
+                {/* Marca en la esquina superior izquierda */}
+                <span className="absolute top-3 left-3 bg-white text-blue-800 text-xs font-bold px-3 py-1 rounded-full shadow border border-blue-200 z-20" style={{minWidth:'60px', textAlign:'center', letterSpacing:'0.08em'}}>{product.brand?.toUpperCase()}</span>
                 {/* Imagen (enlace) */}
                 <Link to={`/producto/${product.id}`} className="block w-full">
                   <img
@@ -136,24 +141,28 @@ const Products = () => {
                 </Link>
                 {/* Nombre (enlace) */}
                 <Link to={`/producto/${product.id}`} className="block w-full">
-                  <h3 className="font-extrabold text-base text-gray-100 mb-1 text-center line-clamp-2 hover:underline uppercase tracking-wider drop-shadow">{product.name}</h3>
+                  <h3 className="font-extrabold text-sm text-gray-100 mb-1 text-left line-clamp-2 hover:underline uppercase tracking-wider drop-shadow">{product.name}</h3>
                 </Link>
                 {/* Precio */}
-                <div className="text-yellow-300 font-extrabold text-base mb-2 drop-shadow">S/. {product.unitPrice.toFixed(2)}</div>
+                <div className="text-yellow-300 font-extrabold text-base mb-2 drop-shadow text-left w-full">USD {product.unitPrice.toFixed(2)}</div>
+                {/* Etiquetas */}
+                {Array.isArray(product.tags) && product.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3 w-full justify-start">
+                    {product.tags.map((tag, idx) => (
+                      <span key={idx} className="bg-blue-700 text-white text-xs font-bold px-2 py-1 rounded tracking-widest" style={{letterSpacing: '0.08em'}}>{tag.toUpperCase()}</span>
+                    ))}
+                  </div>
+                )}
                 {/* Botón WhatsApp */}
                 <button
                   onClick={() => {
-                    const message = `¡Hola! Me interesa este producto:\n\n🧾 *${product.name}*\n📋 Código: ${product.code}\n💰 Precio Unitario: S/. ${product.unitPrice.toFixed(2)}\n¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?\n\n¡Gracias!`;
+                    const message = `¡Hola! Me interesa este producto:\n\n🧾 *${product.name}*\n📋 Código: ${product.code}\n💰 Precio Unitario: USD ${product.unitPrice.toFixed(2)}\n¿Podrían enviarme más información sobre disponibilidad y tiempo de entrega?\n\n¡Gracias!`;
                     const whatsappUrl = `https://wa.me/51970337910?text=${encodeURIComponent(message)}`;
                     window.open(whatsappUrl, '_blank');
                   }}
-                  className="mt-auto w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg tracking-wider text-lg border-2 border-green-700"
+                  className="mt-auto w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg tracking-wider text-xs md:text-sm border-2 border-green-700"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.007 4.003A9.967 9.967 0 0012 2C6.477 2 2 6.477 2 12c0 1.657.404 3.22 1.116 4.59L2 22l5.527-1.09A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10 0-2.652-1.032-5.073-2.993-6.997z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.243 15.657a4 4 0 01-5.657-5.657" />
-                  </svg>
-                  Cotizar por WhatsApp
+                  Cotizar en WhatsApp
                 </button>
               </div>
             ))}
@@ -166,6 +175,7 @@ const Products = () => {
         )}
       </section>
       <WhatsAppButton />
+      <Footer />
     </div>
   );
 };

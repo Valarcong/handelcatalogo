@@ -29,7 +29,8 @@ const EditOrderModal: React.FC<EditOrderModalProps> = ({ pedido, open, onClose, 
       product, 
       cantidad: 1, 
       precio_venta: product.unitPrice, 
-      precio_compra: 0 
+      precio_compra: 0,
+      margen: 0,
     }]);
     setShowAddDialog(false);
   };

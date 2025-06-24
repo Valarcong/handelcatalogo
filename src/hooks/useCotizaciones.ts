@@ -11,6 +11,8 @@ export type Cotizacion = {
   creado_por?: string | null;
   enviado_en?: string | null;
   updated_at?: string | null;
+  razon_social?: string;
+  nombre_cliente?: string;
 };
 
 export type CotizacionProducto = {
@@ -22,6 +24,8 @@ export type CotizacionProducto = {
   precio_unitario: number;
   precio_total: number;
   observaciones?: string | null;
+  precio_compra?: number;
+  margen?: number;
 };
 
 export function useCotizaciones() {

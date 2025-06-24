@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ImportPreviewRow } from "@/utils/importExportUtils";
 
@@ -15,12 +14,15 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({ importRo
           <th className="px-2 py-1">Imagen</th>
           <th className="px-2 py-1">Nombre</th>
           <th className="px-2 py-1">Código</th>
+          <th className="px-2 py-1">Marca</th>
           <th className="px-2 py-1">Descripción</th>
           <th className="px-2 py-1">Categoría</th>
           <th className="px-2 py-1">Precio Unitario</th>
           <th className="px-2 py-1">Precio Mayor</th>
           <th className="px-2 py-1">Cantidad Mín. Mayorista</th>
           <th className="px-2 py-1">Etiquetas</th>
+          <th className="px-2 py-1">Características</th>
+          <th className="px-2 py-1">Especificaciones Técnicas</th>
           <th className="px-2 py-1 text-red-600">Error</th>
         </tr>
       </thead>
@@ -42,12 +44,15 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({ importRo
             </td>
             <td className="px-2 py-1">{row.data.name}</td>
             <td className="px-2 py-1">{row.data.code}</td>
+            <td className="px-2 py-1">{row.data.brand}</td>
             <td className="px-2 py-1">{row.data.description}</td>
             <td className="px-2 py-1">{row.data.category}</td>
             <td className="px-2 py-1">{row.data.unitPrice}</td>
             <td className="px-2 py-1">{row.data.wholesalePrice}</td>
             <td className="px-2 py-1">{row.data.minimumWholesaleQuantity}</td>
             <td className="px-2 py-1">{row.data.tags.join(", ")}</td>
+            <td className="px-2 py-1">{row.data.features.join(", ")}</td>
+            <td className="px-2 py-1">{row.data.technicalSpecs ? Object.entries(row.data.technicalSpecs).map(([k, v]) => `${k}:${v}`).join(", ") : "-"}</td>
             <td className="px-2 py-1 text-xs font-medium text-red-600">
               {row.error || "-"}
             </td>

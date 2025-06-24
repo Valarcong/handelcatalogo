@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from 'react';
 import Header from "./components/Header";
-import Cart from "./components/Cart";
+// import Cart from "./components/Cart"; // Eliminado
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Admin from "./pages/Admin";
@@ -13,7 +14,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Pedidos from "./pages/Pedidos";
 import { AuthProvider } from "./hooks/AuthContext";
-import { CartProvider } from "./hooks/CartContext";
+// import { CartProvider } from "./hooks/CartContext"; // Eliminado
 import ProductDetail from "./pages/ProductDetail";
 import Clientes from "./pages/Clientes";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -38,6 +39,17 @@ const queryClient = new QueryClient({
   },
 });
 
+// Componente que maneja el scroll al cambiar de ruta
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -45,32 +57,31 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
-            <CartProvider>
-              <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-background">
+              <ErrorBoundary>
+                <Header />
+              </ErrorBoundary>
+              {/* <ErrorBoundary>
+                <Cart />
+              </ErrorBoundary> */}
+              <main>
                 <ErrorBoundary>
-                  <Header />
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/productos" element={<Products />} />
+                    <Route path="/producto/:id" element={<ProductDetail />} />
+                    <Route path="/admin/*" element={<Admin />} />
+                    <Route path="/ventas" element={<Ventas />} />
+                    <Route path="/clientes" element={<Clientes />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/pedidos" element={<Pedidos />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </ErrorBoundary>
-                <ErrorBoundary>
-                  <Cart />
-                </ErrorBoundary>
-                <main>
-                  <ErrorBoundary>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/productos" element={<Products />} />
-                      <Route path="/producto/:id" element={<ProductDetail />} />
-                      <Route path="/admin/*" element={<Admin />} />
-                      <Route path="/ventas" element={<Ventas />} />
-                      <Route path="/clientes" element={<Clientes />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/pedidos" element={<Pedidos />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </ErrorBoundary>
-                </main>
-              </div>
-            </CartProvider>
+              </main>
+            </div>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from "react";
 import { CommandDialog, CommandInput, CommandList, CommandItem, CommandGroup, CommandEmpty } from "@/components/ui/command";
 import { useProducts } from "@/hooks/useProducts";
@@ -7,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 
 interface GlobalSearchModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  setOpen: (open: boolean) => void;
 }
 
-const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ open, onOpenChange }) => {
+const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ open, setOpen }) => {
   const { products, categories, loading } = useProducts();
   const [input, setInput] = useState("");
   const navigate = useNavigate();
@@ -40,7 +39,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ open, onOpenChang
   // Atajo de teclado para cerrar con Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
+      if (e.key === "Escape") setOpen(false);
     };
     if (open) window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -49,20 +48,20 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ open, onOpenChang
 
   // Al hacer click en resultado, navega y cierra modal
   const handleSelect = (productId: string) => {
-    onOpenChange(false);
+    setOpen(false);
     navigate(`/productos?highlight=${productId}`);
   };
 
   // Mostrar todos los resultados (redirigir a /productos con término)
   const handleShowAll = () => {
     if (input.trim()) {
-      onOpenChange(false);
+      setOpen(false);
       navigate(`/productos?search=${encodeURIComponent(input.trim())}`);
     }
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
         placeholder="Buscar productos por nombre, código o categoría..."
         value={input}

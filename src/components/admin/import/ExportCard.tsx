@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -30,24 +29,41 @@ const ExportCard: React.FC<ExportCardProps> = ({ products }) => {
   };
 
   const handleExportExcel = () => {
-    // Exportar productos a Excel
+    // Exportar productos a Excel con formato igual a la plantilla de importación (excepto Imagen URL)
     const rows = products.map((p) => ({
-      Código: p.code,
-      Nombre: p.name,
-      Categoría: p.category,
-      Marca: p.brand,
-      "Precio Unitario": Number(p.unitPrice),
-      "Precio Mayorista": Number(p.wholesalePrice),
-      "Cantidad Mínima Mayorista": p.minimumWholesaleQuantity,
-      Etiquetas: (p.tags ?? []).join(", "),
+      'Nombre': p.name,
+      'Código': p.code,
+      'Marca': p.brand,
+      // 'Imagen URL' omitido
+      'Descripción': p.description || '',
+      'Categoría': p.category,
+      'Precio Unitario': Number(p.unitPrice),
+      'Precio Mayor': Number(p.wholesalePrice),
+      'Cantidad Mínima Mayorista': p.minimumWholesaleQuantity ?? '',
+      'Etiquetas': Array.isArray(p.tags) ? p.tags.join(';') : '',
+      'Características': Array.isArray(p.features) ? p.features.join(';') : '',
+      'Especificaciones Técnicas': p.technicalSpecs ? Object.entries(p.technicalSpecs).map(([k, v]) => `${k}:${v}`).join(';') : ''
     }));
-    const ws = XLSX.utils.json_to_sheet(rows);
+    const ws = XLSX.utils.json_to_sheet(rows, { header: [
+      'Nombre',
+      'Código',
+      'Marca',
+      // 'Imagen URL', // omitido
+      'Descripción',
+      'Categoría',
+      'Precio Unitario',
+      'Precio Mayor',
+      'Cantidad Mínima Mayorista',
+      'Etiquetas',
+      'Características',
+      'Especificaciones Técnicas'
+    ] });
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Productos");
-    XLSX.writeFile(wb, "productos_omegaplast.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+    XLSX.writeFile(wb, 'productos_handel.xlsx');
     toast({
-      title: "Excel exportado",
-      description: "Productos exportados a archivo Excel.",
+      title: 'Excel exportado',
+      description: 'Productos exportados a archivo Excel.',
     });
   };
 

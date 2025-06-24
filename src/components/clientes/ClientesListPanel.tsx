@@ -11,6 +11,8 @@ import { generatePedidoPDF } from '@/utils/generatePedidoPDF';
 import { generateClientesReportPDF } from '@/utils/generateReportPDF';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { toast } from 'sonner';
 
 interface ClienteFormProps {
   cliente: any;
@@ -113,6 +115,7 @@ const ClientesListPanel: React.FC = () => {
   const [detallePedido, setDetallePedido] = useState<any | null>(null);
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
+  const { data: exchangeRate, loading: loadingTC, error: errorTC } = useExchangeRate();
 
   useEffect(() => {
     fetchClientes();
@@ -311,7 +314,13 @@ const ClientesListPanel: React.FC = () => {
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setModalView("pedidos")}>Volver</Button>
-                <Button variant="secondary" onClick={() => generatePedidoPDF(detallePedido)}>Descargar PDF</Button>
+                <Button variant="secondary" onClick={() => {
+                  if (!exchangeRate || typeof exchangeRate.tc !== 'number') {
+                    toast.error('No se pudo obtener el tipo de cambio. Intenta de nuevo más tarde.');
+                    return;
+                  }
+                  generatePedidoPDF(detallePedido, exchangeRate.tc);
+                }}>Descargar PDF</Button>
               </div>
             </>
           )}

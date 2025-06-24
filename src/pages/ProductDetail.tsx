@@ -27,14 +27,19 @@ const MAX_QTY = 999;
 
 // Componente para especificaciones técnicas
 const TechnicalSpecs: React.FC<{ product: any }> = ({ product }) => {
-  // Combina specs por defecto con las del producto, dando prioridad a las del producto
-  const defaultSpecs = {
-    'Material': 'No especificado',
-    'Dimensiones': 'No especificado',
-    'Código': product.code,
-  };
-  
-  const specs = { ...defaultSpecs, ...product.technicalSpecs };
+  // Solo mostrar 'Código' por defecto
+  const specs: Record<string, string> = {};
+  specs['Código'] = product.code;
+
+  // Agregar solo las especificaciones técnicas que existan y tengan valor
+  if (product.technicalSpecs && typeof product.technicalSpecs === 'object') {
+    Object.entries(product.technicalSpecs).forEach(([key, value]) => {
+      if (key !== 'Código' && value && value.toString().trim() !== '') {
+        specs[key] = String(value);
+      }
+    });
+  }
+
   const specEntries = Object.entries(specs);
 
   if (specEntries.length === 0 || specEntries.every(s => !s[1])) {
@@ -47,7 +52,7 @@ const TechnicalSpecs: React.FC<{ product: any }> = ({ product }) => {
         <Package className="h-5 w-5 text-blue-600" />
         Especificaciones Técnicas
       </h3>
-      <ResponsiveGrid cols={{ mobile: 1, tablet: 2, desktop: 2 }}>
+      <ResponsiveGrid cols={{ mobile: 1, tablet: 2, desktop: 3 }}>
         {specEntries.map(([key, value]: [string, string]) => (
           <div key={key} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
             <Info className="h-5 w-5 text-gray-600 flex-shrink-0 mt-1" />
@@ -90,7 +95,7 @@ const ProductDetail: React.FC = () => {
   const navigate = useNavigate();
   const { products, loading } = useProducts();
   const [quantity, setQuantity] = useState<number>(MIN_QTY);
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('technical');
 
   const product = products.find((p) => p.id === id);
 
@@ -129,7 +134,7 @@ const ProductDetail: React.FC = () => {
 
 🧾 *${product.name}*
 📋 Código: ${product.code}
-💰 Precio Unitario: S/. ${product.unitPrice.toFixed(2)}
+💰 Precio Unitario: USD ${product.unitPrice.toFixed(2)}
 🔢 Cantidad: ${quantity}
 
 ¿Me podrían dar más información?`;
@@ -228,13 +233,13 @@ const ProductDetail: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Precio unitario:</span>
                       <span className="font-medium">
-                        S/. {displayPrice.toFixed(2)}
+                        USD {displayPrice.toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Total:</span>
                       <span className="text-xl font-bold text-blue-600">
-                        S/. {displayTotal.toFixed(2)}
+                        USD {displayTotal.toFixed(2)}
                       </span>
                     </div>
                     {isWholesale && (
@@ -253,9 +258,9 @@ const ProductDetail: React.FC = () => {
                     size="lg"
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Cotizar por WhatsApp
+                    Cotizar en WhatsApp
                   </Button>
-                  
+                  {/*
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="outline" size="sm" className="w-full">
                       <Heart className="h-4 w-4 mr-1" />
@@ -266,6 +271,7 @@ const ProductDetail: React.FC = () => {
                       Compartir
                     </Button>
                   </div>
+                  */}
                 </div>
               </CardContent>
             </Card>
@@ -302,14 +308,14 @@ const ProductDetail: React.FC = () => {
             <Card>
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="general">General</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2">
+                    {/* <TabsTrigger value="general">General</TabsTrigger> */}
                     <TabsTrigger value="technical">Técnico</TabsTrigger>
                     <TabsTrigger value="features">Características</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="general" className="mt-6 p-6">
+                  {/* <TabsContent value="general" className="mt-6 p-6">
                     <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
-                  </TabsContent>
+                  </TabsContent> */}
                   <TabsContent value="technical" className="mt-6 p-6">
                     <TechnicalSpecs product={product} />
                   </TabsContent>

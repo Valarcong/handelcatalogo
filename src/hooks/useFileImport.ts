@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Product } from "@/types/product";
 import { ImportPreviewRow, REQUIRED_COLUMNS } from "@/utils/importExportUtils";
@@ -79,25 +78,46 @@ export function useFileImport(products: Product[]) {
               ? rowObj["Imagen URL"].trim()
               : "";
 
-          const brandValue = rowObj["Marca"]?.trim() || "omegaplast";
+          const brandValue = rowObj["Marca"]?.trim() || "HANDEL";
+
+          // Características: separar por punto y coma
+          const featuresValue = typeof rowObj["Características"] === "string"
+            ? rowObj["Características"].split(";").map((f: string) => f.trim()).filter(Boolean)
+            : [];
+          console.log('Características (raw):', rowObj["Características"], '->', featuresValue);
+
+          // Especificaciones Técnicas: clave:valor separadas por punto y coma
+          const techSpecsValue = typeof rowObj["Especificaciones Técnicas"] === "string" && rowObj["Especificaciones Técnicas"].trim()
+            ? rowObj["Especificaciones Técnicas"].split(";").reduce((acc: Record<string, string>, pair: string) => {
+                const [key, value] = pair.split(":");
+                if (key && value) acc[key.trim()] = value.trim();
+                return acc;
+              }, {})
+            : {};
+          console.log('Especificaciones Técnicas (raw):', rowObj["Especificaciones Técnicas"], '->', techSpecsValue);
+
+          const productData = {
+            name: rowObj["Nombre"],
+            code: rowObj["Código"],
+            description: rowObj["Descripción"],
+            image: imageValue,
+            brand: brandValue,
+            category: rowObj["Categoría"],
+            unitPrice: Number(rowObj["Precio Unitario"]),
+            wholesalePrice: Number(rowObj["Precio Mayor"]),
+            minimumWholesaleQuantity: Number(rowObj["Cantidad Mínima Mayorista"]) || 10,
+            tags:
+              typeof rowObj["Etiquetas"] === "string"
+                ? rowObj["Etiquetas"].split(",").map((t) => t.trim()).filter(Boolean)
+                : [],
+            features: featuresValue,
+            technicalSpecs: techSpecsValue,
+          };
+          console.log('Producto procesado:', productData);
 
           preview.push({
             rowNumber: i + 1,
-            data: {
-              name: rowObj["Nombre"],
-              code: rowObj["Código"],
-              description: rowObj["Descripción"],
-              image: imageValue,
-              brand: brandValue,
-              category: rowObj["Categoría"],
-              unitPrice: Number(rowObj["Precio Unitario"]),
-              wholesalePrice: Number(rowObj["Precio Mayor"]),
-              minimumWholesaleQuantity: Number(rowObj["Cantidad Mínima Mayorista"]) || 10,
-              tags:
-                typeof rowObj["Etiquetas"] === "string"
-                  ? rowObj["Etiquetas"].split(",").map((t) => t.trim()).filter(Boolean)
-                  : [],
-            },
+            data: productData,
             error,
           });
         }

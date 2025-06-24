@@ -8,6 +8,7 @@ export type ProdEntry = {
   cantidad: number;
   precio_venta: number;
   precio_compra: number;
+  margen: number;
 };
 
 export function useOrderForm(pedido: Pedido | null) {
@@ -21,12 +22,16 @@ export function useOrderForm(pedido: Pedido | null) {
       setProds(
         pedido.productos.map(prod => {
           const found = allProducts.find(p => p.name === prod.nombre);
+          const margen = prod.precio_compra > 0
+            ? ((prod.precio_venta - prod.precio_compra) / prod.precio_compra) * 100
+            : 0;
           return found
-            ? { 
-                product: found, 
-                cantidad: prod.cantidad, 
+            ? {
+                product: found,
+                cantidad: prod.cantidad,
                 precio_venta: prod.precio_venta || 0,
-                precio_compra: prod.precio_compra || 0
+                precio_compra: prod.precio_compra || 0,
+                margen: Number(margen.toFixed(2)),
               }
             : null;
         }).filter(Boolean) as ProdEntry[]

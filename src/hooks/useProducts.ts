@@ -61,6 +61,8 @@ export const useProducts = () => {
         precio_por_mayor: productData.wholesalePrice,
         etiquetas: productData.tags,
         cantidad_minima_mayorista: productData.minimumWholesaleQuantity ?? 10,
+        caracteristicas: productData.features,
+        especificaciones_tecnicas: productData.technicalSpecs
       };
 
       const { data, error } = await supabase
@@ -92,6 +94,8 @@ export const useProducts = () => {
       if (updates.wholesalePrice !== undefined) dbUpdates.precio_por_mayor = updates.wholesalePrice;
       if (updates.tags) dbUpdates.etiquetas = updates.tags;
       if (updates.minimumWholesaleQuantity !== undefined) dbUpdates.cantidad_minima_mayorista = updates.minimumWholesaleQuantity;
+      if (updates.features !== undefined) dbUpdates.caracteristicas = updates.features;
+      if (updates.technicalSpecs !== undefined) dbUpdates.especificaciones_tecnicas = updates.technicalSpecs;
 
       const { data, error } = await supabase
         .from('productos')

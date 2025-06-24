@@ -74,11 +74,11 @@ export const OrderRow: React.FC<OrderRowProps> = ({
           </span>
         )}
       </td>
-      <td className="p-2 font-semibold">S/. {pedido.total.toFixed(2)}</td>
+      <td className="p-2 font-semibold">USD {pedido.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
       <td className="p-2">
         <div className="text-sm">
           <div className={`font-semibold ${gananciaTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            S/. {gananciaTotal.toFixed(2)}
+            USD {gananciaTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           </div>
           <div className="text-xs text-gray-500">
             {margenPromedio.toFixed(1)}% margen

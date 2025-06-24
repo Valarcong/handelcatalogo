@@ -8,6 +8,7 @@ export type ProdEntry = {
   cantidad: number;
   precio_venta: number;
   precio_compra: number;
+  margen: number;
 };
 
 interface ProductTableProps {
@@ -26,11 +27,27 @@ const ProductTable: React.FC<ProductTableProps> = ({
   };
 
   const handlePrecioVentaChange = (idx: number, price: number) => {
-    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio_venta: price } : prod));
+    setProds(p => p.map((prod, i) => {
+      if (i !== idx) return prod;
+      const margen = prod.precio_compra > 0 ? ((price - prod.precio_compra) / prod.precio_compra) * 100 : 0;
+      return { ...prod, precio_venta: price, margen: Number(margen.toFixed(2)) };
+    }));
   };
 
   const handlePrecioCompraChange = (idx: number, price: number) => {
-    setProds(p => p.map((prod, i) => i === idx ? { ...prod, precio_compra: price } : prod));
+    setProds(p => p.map((prod, i) =>
+      i === idx
+        ? { ...prod, precio_compra: price, precio_venta: Number((price * (1 + prod.margen / 100)).toFixed(2)) }
+        : prod
+    ));
+  };
+
+  const handleMargenChange = (idx: number, margen: number) => {
+    setProds(p => p.map((prod, i) => {
+      if (i !== idx) return prod;
+      const precio_venta = Number((prod.precio_compra * (1 + margen / 100)).toFixed(2));
+      return { ...prod, margen, precio_venta };
+    }));
   };
 
   const handleRemove = (idx: number) => {
@@ -58,9 +75,10 @@ const ProductTable: React.FC<ProductTableProps> = ({
               <th className="px-2 py-1 text-left font-semibold">Producto</th>
               <th className="px-2 py-1 text-left font-semibold">Código</th>
               <th className="px-2 py-1 font-semibold">Cantidad</th>
-              <th className="px-2 py-1 font-semibold">Precio Venta</th>
-              <th className="px-2 py-1 font-semibold">Precio Compra</th>
-              <th className="px-2 py-1 font-semibold text-right">Subtotal</th>
+              <th className="px-2 py-1 font-semibold">Precio Venta (USD)</th>
+              <th className="px-2 py-1 font-semibold">Precio Compra (USD)</th>
+              <th className="px-2 py-1 font-semibold">Margen (%)</th>
+              <th className="px-2 py-1 font-semibold text-right">Subtotal (USD)</th>
               <th className="px-2 py-1 font-semibold text-center">Ganancia</th>
               <th className="px-2 py-1 text-center font-semibold">Quitar</th>
             </tr>
@@ -68,7 +86,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
           <tbody>
             {prods.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center text-gray-400 py-4">Sin productos</td>
+                <td colSpan={9} className="text-center text-gray-400 py-4">Sin productos</td>
               </tr>
             ) : (
               prods.map((entry, idx) => (
@@ -78,9 +96,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   cantidad={entry.cantidad}
                   precio_venta={entry.precio_venta}
                   precio_compra={entry.precio_compra}
+                  margen={entry.margen}
                   onCantidadChange={qty => handleQtyChange(idx, qty)}
                   onPrecioVentaChange={price => handlePrecioVentaChange(idx, price)}
                   onPrecioCompraChange={price => handlePrecioCompraChange(idx, price)}
+                  onMargenChange={margen => handleMargenChange(idx, margen)}
                   onRemove={() => handleRemove(idx)}
                 />
               ))

@@ -1,14 +1,15 @@
-
 import React from "react";
 import { PEDIDO_ESTADOS } from "@/types/order";
 import { Filter } from "lucide-react";
 import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
+import { DateRangeFilter } from "@/components/admin/analytics/DateRangeFilter";
 
 interface OrderFiltersProps {
   filters: any;
-  setFilter: (key: string, value: string) => void;
+  setFilter: (key: string, value: any) => void;
   reset: () => void;
 }
 
@@ -46,21 +47,10 @@ const OrderFilters: React.FC<OrderFiltersProps> = ({
       />
     </div>
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-gray-500">Desde:</span>
-      <Input
-        type="date"
-        value={filters.fechaDesde}
-        onChange={e => setFilter("fechaDesde", e.target.value)}
-        className="w-36"
-      />
-    </div>
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-gray-500">Hasta:</span>
-      <Input
-        type="date"
-        value={filters.fechaHasta}
-        onChange={e => setFilter("fechaHasta", e.target.value)}
-        className="w-36"
+      <span className="text-xs text-gray-500">Rango de fechas:</span>
+      <DateRangeFilter
+        range={filters.dateRange}
+        setRange={range => setFilter("dateRange", range)}
       />
     </div>
     <Button
